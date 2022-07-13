@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eplier"
+dynamic = ["description", "readme", "version"]
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "pytorch",
+]
+
+[tool.setuptools.dynamic]
+description = {file = ["DESCRIPTION.md"]}
+readme = {file = ["README.md"]}
+version = {attr = "eplier.__version__"}

@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prettyformatter"
+dynamic = ["version"]
+
+classifiers = [
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Printing"
+]
+
+keywords = ["pretty", "print", "format", "indent", "dataclass"]
+
+license = {text = "mit"}
+readme = "README.md"
+
+requires-python = ">=3.7"
+
+[tool.setuptools.dynamic]
+version = {attr = "prettyformatter.__version__"}
