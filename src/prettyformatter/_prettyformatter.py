@@ -170,6 +170,8 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4) -
     For example, `f\"{custom_object:0>>8:}\"` should be supported to
     benefit from `pformat(custom_object, depth=0, indent=8)`.
     """
+    if obj is ...:
+        return "..."
     if type(specifier) is not str:
         raise TypeError(f"pprint specifier expected a string, got {specifier!r}")
     try:
@@ -244,7 +246,7 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4) -
                 return formatter(obj, specifier, depth, indent)
         try:
             return f"{obj:{depth}>>{indent}:{specifier}}"
-        except ValueError:
+        except (TypeError, ValueError):
             pass
         return f"{obj:{specifier}}"
     content = [
