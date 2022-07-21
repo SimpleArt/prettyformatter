@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "prettyformatter"
-dynamic = ["version"]
+dynamic = ["description", "version"]
 
 classifiers = [
     "Operating System :: OS Independent",
