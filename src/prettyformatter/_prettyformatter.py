@@ -8,14 +8,14 @@ from itertools import islice
 from typing import Any, Callable, Dict, Type, TypeVar, Union
 
 T = TypeVar("T")
-Formatter = Callable[[T, str, int, int], str]
+Formatter = Callable[[T, str, int, int, bool], str]
 Self = TypeVar("Self", bound="PrettyDataclass")
 
 FORMATTERS: Dict[Type[Any], Callable[[Any], str]] = {}
 
 # Formatting options accepted.
 DATACLASS_FSTRING_FORMATTER = re.compile(
-    "(?:(?:(?P<depth>[0-9]+)>>)?(?P<indent>[1-9][0-9]*):)?"
+    "(?:(?P<shorten>[TF][|])?(?:(?P<depth>[0-9]+)>>)?(?P<indent>[1-9][0-9]*):)?"
     "(?P<fill>.*?)"
     "(?P<align>[<>=^]?)"
     "(?P<sign>[+ -]?)"
@@ -34,7 +34,7 @@ def matches_repr(subcls: Type[Any], *cls: Type[Any]) -> bool:
         for c in cls
     )
 
-def pprint(*args: Any, specifier: str = "", depth: int = 0, indent: int = 4, **kwargs: Any) -> None:
+def pprint(*args: Any, specifier: str = "", depth: int = 0, indent: int = 4, shorten: bool = True, **kwargs: Any) -> None:
     """
     Pretty formats an object and prints it.
 
@@ -54,6 +54,8 @@ def pprint(*args: Any, specifier: str = "", depth: int = 0, indent: int = 4, **k
         indent:
             The indentation used.
             Specifies how much the depth increases for inner objects.
+        shorten:
+            Flag for if the result may be shortened if possible.
         **kwargs:
             Additional arguments for printing e.g. sep or end.
 
@@ -103,13 +105,17 @@ def pprint(*args: Any, specifier: str = "", depth: int = 0, indent: int = 4, **k
         indent = operator.index(indent)
     except TypeError:
         raise TypeError(f"pprint could not interpret indent as an integer, got {indent!r}") from None
+    try:
+        shorten = bool(shorten)
+    except TypeError:
+        raise TypeError(f"pprint could not interpret shorten as a boolean, got {shorten!r}") from None
     if depth < 0:
         raise ValueError("pprint expected depth >= 0")
     if indent <= 0:
         raise ValueError("pprint expected indent > 0")
-    print(*[pformat(arg, specifier, depth=depth, indent=indent) for arg in args], **kwargs)
+    print(*[pformat(arg, specifier, depth=depth, indent=indent, shorten=shorten) for arg in args], **kwargs)
 
-def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4) -> str:
+def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, shorten: bool = True) -> str:
     """
     Formats an object and depths the inner contents, if any, by the
     specified amount.
@@ -128,6 +134,8 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4) -
         indent:
             The indentation used.
             Specifies how much the depth increases for inner objects.
+        shorten:
+            Flag for if the result may be shortened if possible.
 
     Returns
     --------
@@ -162,16 +170,17 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4) -
     parameters. F-strings use the indentable extended formatting
     language:
 
-        format_spec ::= [[depth>>]indent:][rest]
+        format_spec ::= [[shorten|][depth>>]indent:][rest]
+        shorten     ::= T or F
         depth       ::= digit+
         indent      ::= digit+ without leading 0
         rest        ::= anything else you want to support e.g. `\".2f\"`
 
-    For example, `f\"{custom_object:0>>8:}\"` should be supported to
-    benefit from `pformat(custom_object, depth=0, indent=8)`.
+    For example, `f\"{custom_object:T|0>>8:}\"` should be supported to
+    benefit from `pformat(custom_object, depth=0, indent=8, shorten=True)`.
     """
     if obj is ...:
-        return "..."
+        return "Ellipsis"
     if type(specifier) is not str:
         raise TypeError(f"pprint specifier expected a string, got {specifier!r}")
     try:
@@ -182,22 +191,26 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4) -
         indent = operator.index(indent)
     except TypeError:
         raise TypeError(f"pprint could not interpret indent as an integer, got {indent!r}") from None
+    try:
+        shorten = bool(shorten)
+    except TypeError:
+        raise TypeError(f"pprint could not interpret shorten as a boolean, got {shorten!r}") from None
     if depth < 0:
         raise ValueError("pprint expected depth >= 0")
     if indent <= 0:
         raise ValueError("pprint expected indent > 0")
     depth_plus = depth + indent
-    no_indent = dict(specifier=specifier, depth=0, indent=indent)
-    plus_indent = dict(specifier=specifier, depth=depth_plus, indent=indent)
-    plus_plus_indent = dict(specifier=specifier, depth=depth_plus + indent, indent=indent)
-    with_indent = dict(specifier=specifier, depth=depth, indent=indent)
+    no_indent = dict(specifier=specifier, depth=0, indent=indent, shorten=shorten)
+    plus_indent = dict(specifier=specifier, depth=depth_plus, indent=indent, shorten=shorten)
+    plus_plus_indent = dict(specifier=specifier, depth=depth_plus + indent, indent=indent, shorten=shorten)
+    with_indent = dict(specifier=specifier, depth=depth, indent=indent, shorten=shorten)
     cls = type(obj)
     if (
         is_dataclass(cls)
         and matches_repr(cls, PrettyDataclass)
         and cls.__format__ is PrettyDataclass.__format__
     ):
-        return f"{obj:{depth}>>{indent}:{specifier}}"
+        return f"{obj:{'FT'[shorten]}|{depth}>>{indent}:{specifier}}"
     elif matches_repr(cls, str):
         return repr(f"{obj:{specifier}}")
     elif matches_repr(cls, ChainMap):
@@ -243,9 +256,9 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4) -
     elif not matches_repr(cls, UserList, frozenset, list, set, tuple):
         for c, formatter in FORMATTERS.items():
             if matches_repr(cls, c):
-                return formatter(obj, specifier, depth, indent)
+                return formatter(obj, specifier, depth, indent, shorten)
         try:
-            return f"{obj:{depth}>>{indent}:{specifier}}"
+            return f"{obj:{'FT'[shorten]}|{depth}>>{indent}:{specifier}}"
         except (TypeError, ValueError):
             pass
         return f"{obj:{specifier}}"
@@ -281,7 +294,7 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4) -
             return f"({s},)"
         else:
             return f"({s})"
-    if len(obj) < 10 or len(s) < 120:
+    if len(obj) < 10 or len(s) < 120 or not shorten:
         content = [pformat(x, **plus_indent) for x in obj]
     else:
         content = [
@@ -337,7 +350,7 @@ def register(*args: Type[T]) -> Callable[[Formatter[T]], Formatter[T]]:
         >>> import numpy as np
         >>> 
         >>> @register(np.ndarray)
-        ... def pformat_ndarray(obj, specifier, depth, indent):
+        ... def pformat_ndarray(obj, specifier, depth, indent, shorten):
         ...     with np.printoptions(formatter=dict(all=lambda x: format(x, specifier))):
         ...         return repr(obj).replace(\"\\n\", \"\\n\" + \" \" * depth)
         ... 
@@ -369,12 +382,12 @@ def register(*args: Type[T]) -> Callable[[Formatter[T]], Formatter[T]]:
     return decorator
 
 @register(UserDict, dict)
-def pformat_dict(obj: Union[UserDict, dict], specifier: str, depth: int, indent: int) -> str:
+def pformat_dict(obj: Union[UserDict, dict], specifier: str, depth: int, indent: int, shorten: bool) -> str:
     depth_plus = depth + indent
-    no_indent = dict(specifier=specifier, depth=0, indent=indent)
-    plus_indent = dict(specifier=specifier, depth=depth_plus, indent=indent)
-    plus_plus_indent = dict(specifier=specifier, depth=depth_plus + indent, indent=indent)
-    with_indent = dict(specifier=specifier, depth=depth, indent=indent)
+    no_indent = dict(specifier=specifier, depth=0, indent=indent, shorten=shorten)
+    plus_indent = dict(specifier=specifier, depth=depth_plus, indent=indent, shorten=shorten)
+    plus_plus_indent = dict(specifier=specifier, depth=depth_plus + indent, indent=indent, shorten=shorten)
+    with_indent = dict(specifier=specifier, depth=depth, indent=indent, shorten=shorten)
     s = ", ".join([
         f"{pformat(key, **no_indent)}: {pformat(value, **no_indent)}"
         for key, value in obj.items()
@@ -388,7 +401,7 @@ def pformat_dict(obj: Union[UserDict, dict], specifier: str, depth: int, indent:
         ])
         s = "\n" + " " * depth_plus + s.replace("\n", "\n" + " " * depth_plus) + "\n" + " " * depth
         return f"{{{s}}}"
-    if len(obj) < 10 or len(s) < 120:
+    if len(obj) < 10 or len(s) < 120 or not shorten:
         content = [
             (pformat(key, **plus_indent), pformat(value, **plus_plus_indent))
             for key, value in obj.items()
@@ -464,7 +477,7 @@ class PrettyDataclass:
         match = DATACLASS_FSTRING_FORMATTER.fullmatch(specifier)
         if match is None:
             raise ValueError(f"Invalid format specifier: {specifier!r}")
-        depth, indent, fill, align, sign, alternate, width, group, precision, dtype = match.groups()
+        shorten, depth, indent, fill, align, sign, alternate, width, group, precision, dtype = match.groups()
         depth = 0 if depth is None else int(depth)
         indent = 4 if indent is None else int(indent)
         depth_plus = depth + indent
@@ -476,7 +489,7 @@ class PrettyDataclass:
         s = (
             f"{cls.__name__}("
             + ", ".join([
-                f"{f.name}={pformat(attr, specifier, depth=0, indent=indent)}"
+                f"{f.name}={pformat(attr, specifier, depth=0, indent=indent, shorten=shorten)}"
                 for f, attr in zip(fields(cls), attributes)
             ])
             + ")"
@@ -487,7 +500,7 @@ class PrettyDataclass:
             f"{cls.__name__}(\n"
             + " " * depth_plus
             + (",\n" + " " * depth_plus).join([
-                f"{f.name}={pformat(attr, specifier, depth=depth_plus + indent, indent=indent)}"
+                f"{f.name}={pformat(attr, specifier, depth=depth_plus + indent, indent=indent, shorten=shorten)}"
                 for f, attr in zip(fields(cls), attributes)
             ])
             + ",\n"
