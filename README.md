@@ -126,7 +126,7 @@ import numpy as np
 @register(np.ndarray)
 def pformat_ndarray(obj, specifier, depth, indent):
     with np.printoptions(formatter=dict(all=lambda x: format(x, specifier))):
-        return repr(obj).replace(\"\\n\", \"\\n\" + \" \" * depth)
+        return repr(obj).replace("\n", "\n" + " " * depth)
 
 pprint(dict.fromkeys("ABC", np.arange(9).reshape(3, 3)))
 """
