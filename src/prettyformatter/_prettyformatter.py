@@ -478,6 +478,7 @@ class PrettyDataclass:
         if match is None:
             raise ValueError(f"Invalid format specifier: {specifier!r}")
         shorten, depth, indent, fill, align, sign, alternate, width, group, precision, dtype = match.groups()
+        shorten = not (None is not shorten != "T")
         depth = 0 if depth is None else int(depth)
         indent = 4 if indent is None else int(indent)
         depth_plus = depth + indent

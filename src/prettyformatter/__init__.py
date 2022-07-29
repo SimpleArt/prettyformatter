@@ -102,6 +102,6 @@ Examples
                        [6, 7, 8]]),
         }
 """
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 from ._prettyformatter import PrettyDataclass, pformat, pprint, register
