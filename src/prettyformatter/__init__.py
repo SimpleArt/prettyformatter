@@ -121,8 +121,8 @@ Examples
                 ],
         )
 
-    If there are more than 3 fields and the dataclass is long,
-    then fields and their values are split, similar to a dict.
+    If there are more than 3 fields then fields and their values are
+    split, similar to a dict.
         >>> @dataclass
         ... class Person(PrettyDataclass):
         ...     name: str
@@ -130,16 +130,16 @@ Examples
         ...     phone_number: str
         ...     address: str
         ... 
-        >>> print(Person("Jane Doe", "2001-01-01 08:23:00", "012-345-6789", "123 Sample St. City Country ZIP_CODE"))
+        >>> print(Person("Jane Doe", "2001-01-01", "012-345-6789", "123 Sample St."))
         Person(
             name=
                 'Jane Doe',
             birthday=
-                '2001-01-01 08:23:00',
+                '2001-01-01',
             phone_number=
                 '012-345-6789',
             address=
-                '123 Sample St. City Country ZIP_CODE',
+                '123 Sample St.',
         )
 
     Named tuples work like dataclasses, but requires `pprint` instead
