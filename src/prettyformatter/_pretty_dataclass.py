@@ -138,6 +138,17 @@ class PrettyDataclass(PrettyClass):
                     ])
                 + (",\n" + " " * depth + ")")
             )
+        if len({len(f.name) for f in fields(cls)}) > 1:
+            return (
+                (f"{cls.__name__}(\n" + " " * depth_plus)
+                + (",\n" + " " * depth_plus).join([
+                        f"{f.name}=\n    "
+                        + " " * depth_plus
+                        + pformat(getattr(self, f.name), **plus_plus_indent)
+                        for f in fields(cls)
+                    ])
+                + (",\n" + " " * depth + ")")
+            )
         return (
             (f"{cls.__name__}(\n" + " " * depth_plus)
             + (",\n" + " " * depth_plus).join([
@@ -147,5 +158,3 @@ class PrettyDataclass(PrettyClass):
                 ])
             + (",\n" + " " * depth + ")")
         )
-
-        

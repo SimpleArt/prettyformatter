@@ -288,6 +288,17 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
                     ])
                 + (",\n" + " " * depth + ")")
             )
+        if len({len(name) for name in cls._fields}) > 1:
+            return (
+                (f"{cls.__name__}(\n" + " " * depth_plus)
+                + (",\n" + " " * depth_plus).join([
+                        f"{name}=\n    "
+                        + " " * depth_plus
+                        + pformat(getattr(obj, name), **plus_plus_indent)
+                        for name in cls._fields
+                    ])
+                + (",\n" + " " * depth + ")")
+            )
         return (
             (f"{cls.__name__}(\n" + " " * depth_plus)
             + (",\n" + " " * depth_plus).join([
