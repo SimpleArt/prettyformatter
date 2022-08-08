@@ -8,7 +8,6 @@ import operator
 import re
 from collections import ChainMap, Counter, OrderedDict, UserDict
 from collections import UserList, defaultdict, deque
-from collections import _tuplegetter as tuplegetter
 from dataclasses import fields, is_dataclass
 from itertools import islice
 from typing import Any, Callable, Collection, List, Mapping, Tuple, Type, TypeVar, Union
@@ -247,14 +246,19 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
             return f"{cls.__name__}({pformat_collection(obj, **with_indent)})"
         return f"{cls.__name__}{pformat((list(obj), obj.maxlen), **with_indent)}"
     elif (
-        cls.mro()[1:] == [tuple, object]
-        and all(
-            hasattr(cls, attr)
-            for attr in ("_asdict", "_field_defaults", "_fields", "_make", "_replace")
+        all(
+            parent is expected
+            for parent, expected in zip(cls.mro(), [cls, tuple, object])
         )
         and all(
-            type(f) is str and type(getattr(cls, f, None)) is tuplegetter
-            for f in cls._fields
+            hasattr(cls, attr)
+            for attr in (
+                "_asdict",
+                "_field_defaults",
+                "_fields",
+                "_make",
+                "_replace",
+            )
         )
     ):
         if len(cls._fields) > 3:
