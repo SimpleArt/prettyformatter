@@ -205,12 +205,8 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
     plus_plus_indent = dict(specifier=specifier, depth=depth_plus + indent, indent=indent, shorten=shorten)
     with_indent = dict(specifier=specifier, depth=depth, indent=indent, shorten=shorten)
     cls = type(obj)
-    if (
-        is_dataclass(cls)
-        and matches_repr(cls, PrettyDataclass)
-        and cls.__format__ is PrettyDataclass.__format__
-    ):
-        return f"{obj:{'FT'[shorten]}|{depth}>>{indent}:{specifier}}"
+    if hasattr(cls, "__pformat__"):
+        return cls.__pformat__(obj, specifier, depth, indent, shorten)
     elif matches_repr(cls, str):
         return repr(f"{obj:{specifier}}")
     elif matches_repr(cls, ChainMap):
