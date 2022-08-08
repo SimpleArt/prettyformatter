@@ -1,3 +1,9 @@
+"""
+Implements:
+    pprint
+    pformat
+    register
+"""
 import operator
 import re
 from collections import ChainMap, Counter, OrderedDict, UserDict
@@ -26,12 +32,15 @@ def pprint(*args: Any, specifier: str = "", depth: int = 0, indent: int = 4, sho
 
     Equivalent to `print(pformat(...), ...)`.
 
+    To make your classes work with `prettyformatter`,
+    see `help(prettyformatter)` for more information.
+
     Parameters
     -----------
         *args:
             The arguments being printed.
         specifier:
-            A format specifier e.g. `\".2f\"`.
+            A format specifier e.g. `".2f"`.
         depth:
             The depth of the objects.
             Their first lines are not indented.
@@ -65,21 +74,33 @@ def pprint(*args: Any, specifier: str = "", depth: int = 0, indent: int = 4, sho
             },
         ]
 
-    To customize the formatting of a class, use either the
-    `PrettyDataclass` to get pre-built formatting functionality,
-    implement the `__format__` method to support f-strings and
-    `prettyformatter` features, or use the `@register` function to
-    register an already existing class to support the `pformat`
-    parameters. F-strings use the indentable extended formatting
-    language:
+    Structure
+    ----------
+        >>> pprint([{0: {"ABC": [list(range(30))]}}]
+        [
+              {
+                0:
+                  {'ABC': [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+              }
+            ]
 
-        format_spec ::= [[depth>>]indent:][rest]
-        depth       ::= digit+
-        indent      ::= digit+ without leading 0
-        rest        ::= anything else you want to support e.g. `\".2f\"`
+        Explanation:
+            [
+            ^
+          no indent for the first line
 
-    For example, `f\"{custom_object:0>>8:}\"` should be supported to
-    benefit from `pformat(custom_object, depth=0, indent=8)`.
+                  {
+                    0:
+                  ^^
+              indent = 2
+
+                      {'ABC': [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                                               ^^^
+                                           shorten = True
+                  }
+                ]
+            ^^^^
+          depth = 4
     """
     if type(specifier) is not str:
         raise TypeError(f"pprint specifier expected a string, got {specifier!r}")
@@ -106,12 +127,15 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
     Formats an object and depths the inner contents, if any, by the
     specified amount.
 
+    To make your classes work with `prettyformatter`,
+    see `help(prettyformatter)` for more information.
+
     Parameters
     -----------
         obj:
             The object being formatted.
         specifier:
-            A format specifier e.g. `\".2f\"`.
+            A format specifier e.g. `".2f"`.
         depth:
             The depth of the objects.
             Their first lines are not indented.
@@ -148,22 +172,33 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
             },
         ]
 
-    To customize the formatting of a class, use either the
-    `PrettyDataclass` to get pre-built formatting functionality,
-    implement the `__format__` method to support f-strings and
-    `prettyformatter` features, or use the `@register` function to
-    register an already existing class to support the `pformat`
-    parameters. F-strings use the indentable extended formatting
-    language:
+    Structure
+    ----------
+        >>> pprint([{0: {"ABC": [list(range(30))]}}]
+        [
+              {
+                0:
+                  {'ABC': [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+              }
+            ]
 
-        format_spec ::= [[shorten|][depth>>]indent:][rest]
-        shorten     ::= T or F
-        depth       ::= digit+
-        indent      ::= digit+ without leading 0
-        rest        ::= anything else you want to support e.g. `\".2f\"`
+        Explanation:
+            [
+            ^
+          no indent for the first line
 
-    For example, `f\"{custom_object:T|0>>8:}\"` should be supported to
-    benefit from `pformat(custom_object, depth=0, indent=8, shorten=True)`.
+                  {
+                    0:
+                  ^^
+              indent = 2
+
+                      {'ABC': [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                                               ^^^
+                                           shorten = True
+                  }
+                ]
+            ^^^^
+          depth = 4
     """
     if obj is ...:
         return "Ellipsis"
@@ -288,11 +323,15 @@ def register(*args: Type[T]) -> Callable[[Formatter[T]], Formatter[T]]:
     Register classes with formatters. Useful for enabling pprint with
     already defined classes.
 
+    For classes you define, it is preferable that the `PrettyClass` is
+    implemented instead. See `help(prettyformatter)` for more
+    information.
+
     Usage
     ------
         @register(cls1, cls2, ...)
-        def formatter(obj, specifier, depth, indent):
-            return f"{obj:{depth}>>{indent}:specifier}"
+        def formatter(obj, specifier, depth, indent, shorten):
+            return f"{obj:{shorten}|{depth}>>{indent}:specifier}"
 
     Example
     --------
