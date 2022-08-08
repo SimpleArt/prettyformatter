@@ -257,33 +257,33 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
             for f in cls._fields
         )
     ):
-        if len(cls._fields) < 10:
-            s = (
-                f"{cls.__name__}("
-                + ", ".join([
-                        f"{name}={pformat(getattr(obj, name), **no_indent)}"
+        if len(cls._fields) > 3:
+            return (
+                (f"{cls.__name__}(\n" + " " * depth_plus)
+                + (",\n" + " " * depth_plus).join([
+                        f"{name}=\n    "
+                        + " " * depth_plus
+                        + pformat(getattr(obj, name), **plus_plus_indent)
                         for name in cls._fields
                     ])
-                + ")"
+                + (",\n" + " " * depth + ")")
             )
-            if len(s) < 25 and "\n" not in s or len(s) < 50:
-                if "\n" not in s:
-                    return s
-                return (
-                    (f"{cls.__name__}(\n" + " " * depth_plus)
-                    + (",\n" + " " * depth_plus).join([
-                            f"{name}="
-                            + pformat(getattr(obj, name), **no_indent).replace("\n", "\n    " + " " * depth_plus)
-                            for name in cls._fields
-                        ])
-                    + (",\n" + " " * depth + ")")
-                )
-        if len(cls._fields) < 4:
+        s = (
+            f"{cls.__name__}("
+            + ", ".join([
+                    f"{name}={pformat(getattr(obj, name), **no_indent)}"
+                    for name in cls._fields
+                ])
+            + ")"
+        )
+        if len(s) < 25 and "\n" not in s or len(s) < 50:
+            if "\n" not in s:
+                return s
             return (
                 (f"{cls.__name__}(\n" + " " * depth_plus)
                 + (",\n" + " " * depth_plus).join([
                         f"{name}="
-                        + pformat(getattr(obj, name), **plus_plus_indent)
+                        + pformat(getattr(obj, name), **no_indent).replace("\n", "\n    " + " " * depth_plus)
                         for name in cls._fields
                     ])
                 + (",\n" + " " * depth + ")")
@@ -291,8 +291,7 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
         return (
             (f"{cls.__name__}(\n" + " " * depth_plus)
             + (",\n" + " " * depth_plus).join([
-                    f"{name}=\n    "
-                    + " " * depth_plus
+                    f"{name}="
                     + pformat(getattr(obj, name), **plus_plus_indent)
                     for name in cls._fields
                 ])

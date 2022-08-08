@@ -107,33 +107,33 @@ class PrettyDataclass(PrettyClass):
         depth_plus = depth + indent
         no_indent = dict(specifier=specifier, depth=0, indent=indent, shorten=shorten)
         plus_plus_indent = dict(specifier=specifier, depth=depth_plus + indent, indent=indent, shorten=shorten)
-        if len(fields(cls)) < 10:
-            s = (
-                f"{cls.__name__}("
-                + ", ".join([
-                        f"{f.name}={pformat(getattr(self, f.name), **no_indent)}"
+        if len(fields(cls)) > 3:
+            return (
+                (f"{cls.__name__}(\n" + " " * depth_plus)
+                + (",\n" + " " * depth_plus).join([
+                        f"{f.name}=\n    "
+                        + " " * depth_plus
+                        + pformat(getattr(self, f.name), **plus_plus_indent)
                         for f in fields(cls)
                     ])
-                + ")"
+                + (",\n" + " " * depth + ")")
             )
-            if len(s) < 25 and "\n" not in s or len(s) < 50:
-                if "\n" not in s:
-                    return s
-                return (
-                    (f"{cls.__name__}(\n" + " " * depth_plus)
-                    + (",\n" + " " * depth_plus).join([
-                            f"{f.name}="
-                            + pformat(getattr(self, f.name), **no_indent).replace("\n", "\n    " + " " * depth_plus)
-                            for f in fields(cls)
-                        ])
-                    + (",\n" + " " * depth + ")")
-                )
-        if len(fields(cls)) < 4:
+        s = (
+            f"{cls.__name__}("
+            + ", ".join([
+                    f"{f.name}={pformat(getattr(self, f.name), **no_indent)}"
+                    for f in fields(cls)
+                ])
+            + ")"
+        )
+        if len(s) < 25 and "\n" not in s or len(s) < 50:
+            if "\n" not in s:
+                return s
             return (
                 (f"{cls.__name__}(\n" + " " * depth_plus)
                 + (",\n" + " " * depth_plus).join([
                         f"{f.name}="
-                        + pformat(getattr(self, f.name), **plus_plus_indent)
+                        + pformat(getattr(self, f.name), **no_indent).replace("\n", "\n    " + " " * depth_plus)
                         for f in fields(cls)
                     ])
                 + (",\n" + " " * depth + ")")
@@ -141,8 +141,7 @@ class PrettyDataclass(PrettyClass):
         return (
             (f"{cls.__name__}(\n" + " " * depth_plus)
             + (",\n" + " " * depth_plus).join([
-                    f"{f.name}=\n    "
-                    + " " * depth_plus
+                    f"{f.name}="
                     + pformat(getattr(self, f.name), **plus_plus_indent)
                     for f in fields(cls)
                 ])

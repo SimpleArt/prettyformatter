@@ -198,7 +198,7 @@ Examples
                        [6, 7, 8]]),
         }
 """
-__version__ = "1.2.2"
+__version__ = "1.3.0"
 
 from ._pretty_class import PrettyClass
 from ._pretty_dataclass import PrettyDataclass
