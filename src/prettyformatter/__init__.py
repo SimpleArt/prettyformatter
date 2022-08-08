@@ -123,6 +123,10 @@ Examples
 
     If there are more than 3 fields then fields and their values are
     split, similar to a dict.
+
+    Also, if there are 3 or less fields but the dataclass is long and
+    the field names are of unequal lengths, then fields and their
+    values are split.
         >>> @dataclass
         ... class Person(PrettyDataclass):
         ...     name: str
@@ -198,7 +202,7 @@ Examples
                        [6, 7, 8]]),
         }
 """
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
 from ._pretty_class import PrettyClass
 from ._pretty_dataclass import PrettyDataclass
