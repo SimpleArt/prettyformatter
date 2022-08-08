@@ -243,7 +243,7 @@ Hello world! Got '', 0, 4, True.
 
 Use f-strings with your classes.
 
-```
+```python
 """
 format_spec ::= [[[shorten|]depth>>]indent:][specifier]
 shorten     ::= T | F
