@@ -12,7 +12,9 @@ theme:
 
 nav:
   - Home: index.md
-  - Reference: reference.md
+  - Classes:
+      - PrettyClass: pretty_class.md
+      - PrettyDataClass: pretty_dataclass.md
 
 markdown_extensions:
   - pymdownx.highlight:

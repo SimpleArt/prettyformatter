@@ -105,25 +105,27 @@ class PrettyDataclass(PrettyClass):
         if not is_dataclass(cls):
             return super(PrettyClass, cls).__format__(self, specifier)
         depth_plus = depth + indent
-        no_indent = dict(specifier=specifier, depth=0, indent=indent, shorten=shorten)
-        plus_plus_indent = dict(specifier=specifier, depth=depth_plus + indent, indent=indent, shorten=shorten)
+        no_indent = dict(specifier=specifier, depth=0,
+                         indent=indent, shorten=shorten)
+        plus_plus_indent = dict(
+            specifier=specifier, depth=depth_plus + indent, indent=indent, shorten=shorten)
         if len(fields(cls)) > 3:
             return (
                 (f"{cls.__name__}(\n" + " " * depth_plus)
                 + (",\n" + " " * depth_plus).join([
-                        f"{f.name}=\n    "
-                        + " " * depth_plus
-                        + pformat(getattr(self, f.name), **plus_plus_indent)
-                        for f in fields(cls)
-                    ])
+                    f"{f.name}=\n    "
+                    + " " * depth_plus
+                    + pformat(getattr(self, f.name), **plus_plus_indent)
+                    for f in fields(cls)
+                ])
                 + (",\n" + " " * depth + ")")
             )
         s = (
             f"{cls.__name__}("
             + ", ".join([
-                    f"{f.name}={pformat(getattr(self, f.name), **no_indent)}"
-                    for f in fields(cls)
-                ])
+                f"{f.name}={pformat(getattr(self, f.name), **no_indent)}"
+                for f in fields(cls)
+            ])
             + ")"
         )
         if len(s) < 25 and "\n" not in s or len(s) < 50:
@@ -132,29 +134,30 @@ class PrettyDataclass(PrettyClass):
             return (
                 (f"{cls.__name__}(\n" + " " * depth_plus)
                 + (",\n" + " " * depth_plus).join([
-                        f"{f.name}="
-                        + pformat(getattr(self, f.name), **no_indent).replace("\n", "\n    " + " " * depth_plus)
-                        for f in fields(cls)
-                    ])
+                    f"{f.name}="
+                    + pformat(getattr(self, f.name), **
+                              no_indent).replace("\n", "\n    " + " " * depth_plus)
+                    for f in fields(cls)
+                ])
                 + (",\n" + " " * depth + ")")
             )
         if len({len(f.name) for f in fields(cls)}) > 1:
             return (
                 (f"{cls.__name__}(\n" + " " * depth_plus)
                 + (",\n" + " " * depth_plus).join([
-                        f"{f.name}=\n    "
-                        + " " * depth_plus
-                        + pformat(getattr(self, f.name), **plus_plus_indent)
-                        for f in fields(cls)
-                    ])
+                    f"{f.name}=\n    "
+                    + " " * depth_plus
+                    + pformat(getattr(self, f.name), **plus_plus_indent)
+                    for f in fields(cls)
+                ])
                 + (",\n" + " " * depth + ")")
             )
         return (
             (f"{cls.__name__}(\n" + " " * depth_plus)
             + (",\n" + " " * depth_plus).join([
-                    f"{f.name}="
-                    + pformat(getattr(self, f.name), **plus_plus_indent)
-                    for f in fields(cls)
-                ])
+                f"{f.name}="
+                + pformat(getattr(self, f.name), **plus_plus_indent)
+                for f in fields(cls)
+            ])
             + (",\n" + " " * depth + ")")
         )
