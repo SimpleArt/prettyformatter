@@ -1,0 +1,25 @@
+site_name: PrettyFormatter
+repo_url: https://github.com/SimpleArt/prettyformatter
+
+theme:
+  name: material
+  features:
+    - navigation.expand
+    - navigation.sections
+  palette:
+    primary: indigio
+    accent: light blue
+
+nav:
+  - Home: index.md
+  - Reference: reference.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+plugins:
+  - mkdocstrings
