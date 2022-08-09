@@ -39,7 +39,7 @@ def pprint(*args: Any, specifier: str = "", depth: int = 0, indent: int = 4, sho
         *args:
             The arguments being printed.
         specifier:
-            A format specifier e.g. `".2f"`.
+            A format specifier e.g. ".2f".
         depth:
             The depth of the objects.
             Their first lines are not indented.
@@ -134,7 +134,7 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
         obj:
             The object being formatted.
         specifier:
-            A format specifier e.g. `".2f"`.
+            A format specifier e.g. ".2f".
         depth:
             The depth of the objects.
             Their first lines are not indented.
