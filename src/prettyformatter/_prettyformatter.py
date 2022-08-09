@@ -4,6 +4,7 @@ Implements:
     pformat
     register
 """
+import json
 import operator
 import re
 from collections import ChainMap, Counter, OrderedDict, UserDict
@@ -227,8 +228,10 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
     cls = type(obj)
     if hasattr(cls, "__pformat__"):
         return cls.__pformat__(obj, specifier, depth, indent, shorten)
+    elif cls is str:
+        return json.dumps(obj)
     elif matches_repr(cls, str):
-        return repr(f"{obj:{specifier}}")
+        return repr(obj)
     elif matches_repr(cls, ChainMap):
         return f"{cls.__name__}({pformat(obj.maps, **with_indent)[1:-1]})"
     elif matches_repr(cls, Counter):
