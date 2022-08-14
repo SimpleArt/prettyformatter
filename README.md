@@ -4,6 +4,9 @@ Pretty formatter enables pretty formatting using hanging indents,
 dataclasses, ellipses, and simple customizability by registering
 formatters.
 
+For the full documentation, see
+[here](https://simpleart.github.io/prettyformatter/).
+
 ## Installation
 
 Windows:
