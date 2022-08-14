@@ -30,6 +30,8 @@ from prettyformatter import pprint, pformat, register
 
 ## JSON Data
 
+`prettyformatter` works with JSON data.
+
 ```python
 from prettyformatter import pprint
 
@@ -51,7 +53,16 @@ toppings = [
 ]
 
 data = {"id": "0001", "type": "donut", "name": "Cake", "ppu": 0.55, "batters": batters, "topping": toppings}
+```
 
+## `pprint`:
+
+`prettyformatter` attempts to compromise between alignment,
+readability, and horizontal/vertical compactness.
+
+Support for JSON data is also as easy as `pprint(json=True)`.
+
+```python
 pprint(data, json=True)
 """
 {
@@ -82,7 +93,12 @@ pprint(data, json=True)
         ],
 }
 """
+```
 
+`pprint` supports the same parameters as `print`, meaning saving to
+files is as easy as `file=file`.
+
+```python
 # Save to a file.
 with open("cake.json", mode="w") as file:
     pprint(data, json=True, file=file)

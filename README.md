@@ -53,10 +53,12 @@ toppings = [
 data = {"id": "0001", "type": "donut", "name": "Cake", "ppu": 0.55, "batters": batters, "topping": toppings}
 ```
 
-## `pprint(json=True)`:
+## `pprint`:
 
 `prettyformatter` attempts to compromise between alignment,
 readability, and horizontal/vertical compactness.
+
+Support for JSON data is also as easy as `pprint(json=True)`.
 
 ```python
 from prettyformatter import pprint
@@ -92,8 +94,6 @@ pprint(data, json=True)
 }
 """
 ```
-
-## `pprint(file=file)`:
 
 `pprint` supports the same parameters as `print`, meaning saving to
 files is as easy as `file=file`.
@@ -139,6 +139,7 @@ Custom formatters for existing classes can be registered.
 
 ```python
 import numpy as np
+
 @register(np.ndarray)
 def pformat_ndarray(obj, specifier, depth, indent, shorten, json):
     if json:

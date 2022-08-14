@@ -200,7 +200,7 @@ Examples
                 [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
         }
 """
-__version__ = "1.4.2"
+__version__ = "1.4.3"
 
 from ._pretty_class import PrettyClass
 from ._pretty_dataclass import PrettyDataclass

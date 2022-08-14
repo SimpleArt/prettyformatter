@@ -44,7 +44,7 @@ py -m pip install prettyformatter IPython yaml
 ### Unix/MacOS:
 
 ```
-python3 -m pi install prettyformatter IPython yaml
+python3 -m pip install prettyformatter IPython yaml
 ```
 
 ## JSON Example
