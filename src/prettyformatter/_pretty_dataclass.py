@@ -15,57 +15,22 @@ class PrettyDataclass(PrettyClass):
     """
     Base class for creating pretty dataclasses.
 
-    Dataclasses are supported by subclassing the PrettyDataclass.
+    For the full documentation, see:
+        https://simpleart.github.io/prettyformatter/PrettyDataclass
+
         >>> from dataclasses import dataclass
         >>> from typing import List
         >>> 
-        >>> big_data = list(range(1000))
-
-    Dataclass fields are pretty formatted.
+        >>> 
         >>> @dataclass
         ... class Data(PrettyDataclass):
         ...     data: List[int]
         ... 
-        >>> Data(big_data)
-        Data(data=[0, 1, 2, 3, 4, ..., 997, 998, 999])
-
-    Long dataclasses are split into multiple lines.
         >>> 
-        >>> @dataclass
-        ... class MultiData(PrettyDataclass):
-        ...     x: List[int]
-        ...     y: List[int]
-        ...     z: List[int]
-        ... 
-        >>> MultiData(big_data, big_data, big_data)
-        MultiData(
-            x=[0, 1, 2, 3, 4, ..., 997, 998, 999],
-            y=[0, 1, 2, 3, 4, ..., 997, 998, 999],
-            z=[0, 1, 2, 3, 4, ..., 997, 998, 999],
-        )
-
-    Nested data is indented deeper.
-        >>> @dataclass
-        ... class NestedData(PrettyDataclass):
-        ...     data: List[List[int]]
-        ... 
-        >>> NestedData([big_data] * 1000)
-        NestedData(
-            data=[
-                    [0, 1, 2, 3, 4, ..., 997, 998, 999],
-                    [0, 1, 2, 3, 4, ..., 997, 998, 999],
-                    [0, 1, 2, 3, 4, ..., 997, 998, 999],
-                    [0, 1, 2, 3, 4, ..., 997, 998, 999],
-                    [0, 1, 2, 3, 4, ..., 997, 998, 999],
-                    ...,
-                    [0, 1, 2, 3, 4, ..., 997, 998, 999],
-                    [0, 1, 2, 3, 4, ..., 997, 998, 999],
-                    [0, 1, 2, 3, 4, ..., 997, 998, 999],
-                ],
-        )
-
-    If there are more than 3 fields and the dataclass is long,
-    then fields and their values are split, similar to a dict.
+        >>> Data(list(range(1000)))
+        Data(data=[0, 1, 2, 3, 4, ..., 997, 998, 999])
+        >>> 
+        >>> 
         >>> @dataclass
         ... class Person(PrettyDataclass):
         ...     name: str
@@ -73,16 +38,17 @@ class PrettyDataclass(PrettyClass):
         ...     phone_number: str
         ...     address: str
         ... 
-        >>> Person("Jane", "2001-01-01", "012-345-6789", "123 Sample St.")
+        >>> 
+        >>> Person("Jane Doe", "2001-01-01", "012-345-6789", "123 Sample St.")
         Person(
             name=
-                'Jane',
+                "Jane Doe",
             birthday=
-                '2001-01-01',
+                "2001-01-01",
             phone_number=
-                '012-345-6789',
+                "012-345-6789",
             address=
-                '123 Sample St.',
+                "123 Sample St.",
         )
     """
 
@@ -95,21 +61,22 @@ class PrettyDataclass(PrettyClass):
         cls.__repr__ = cls.__repr__
         return super().__init_subclass__(**kwargs)
 
-    def __pformat__(self: Self, specifier: str, depth: int, indent: int, shorten: bool) -> str:
+    def __pformat__(self: Self, specifier: str, depth: int, indent: int, shorten: bool, json: bool) -> str:
         """
         Implements pretty formatting for dataclasses based on the
         dataclass fields. If the subclass is not a dataclass, returns
         the parent implementation of format(self, specifier).
         """
         cls = type(self)
+        depth_plus = depth + indent
+        no_indent = dict(specifier=specifier, depth=0, indent=indent, shorten=shorten, json=json)
+        plus_plus_indent = dict(specifier=specifier, depth=depth_plus + indent, indent=indent, shorten=shorten, json=json)
+        with_indent = dict(specifier=specifier, depth=depth, indent=indent, shorten=shorten, json=json)
         if not is_dataclass(cls):
             return super(PrettyClass, cls).__format__(self, specifier)
-        depth_plus = depth + indent
-        no_indent = dict(specifier=specifier, depth=0,
-                         indent=indent, shorten=shorten)
-        plus_plus_indent = dict(
-            specifier=specifier, depth=depth_plus + indent, indent=indent, shorten=shorten)
-        if len(fields(cls)) > 3:
+        elif json:
+            return pformat({f.name: getattr(self, f.name) for f in fields(cls)}, **with_indent)
+        elif len(fields(cls)) > 3:
             return (
                 (f"{cls.__name__}(\n" + " " * depth_plus)
                 + (",\n" + " " * depth_plus).join([

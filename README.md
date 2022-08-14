@@ -21,171 +21,90 @@ python3 -m pip install prettyformatter
 ## Imports
 
 ```python
-from prettyformatter import PrettyClass, PrettyDataclass, pprint, pformat, register
+from prettyformatter import PrettyClass, PrettyDataclass
+from prettyformatter import pprint, pformat, register
 ```
 
-## Basic Usage
+## JSON Data
 
-Long containers are truncated.
-
-```python
-pprint(list(range(1000)))
-"""
-[0, 1, 2, 3, 4, ..., 997, 998, 999]
-"""
-```
-
-Large nested structures are split into multiple lines, while things
-which (reasonably) fit on a line will remain on one line.
-
-Notice that trailing commas are used.
-
-Notice that multi-line dictionaries have key-value pairs indented
-at different levels.
+`prettyformatter` works with JSON data.
 
 ```python
-pprint([{i: {"ABC": [list(range(30))]} for i in range(5)}])
-"""
-[
-    {
-        0:
-            {'ABC': [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        1:
-            {'ABC': [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        2:
-            {'ABC': [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        3:
-            {'ABC': [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        4:
-            {'ABC': [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-    },
+batters = [
+    {"id": "1001", "type": "Regular"},
+    {"id": "1002", "type": "Chocolate"},
+    {"id": "1003", "type": "Blueberry"},
+    {"id": "1004", "type": "Devil's Food"},
 ]
-"""
-```
 
-The current depth and indentation size can be modified.
-Shortening the data is also toggleable.
-See `help(prettyformatter.pprint)` for more information.
-
-```python
-pprint([{i: {"ABC": [list(range(30))]} for i in range(5)}], indent=2)
-"""
-[
-  {
-    0:
-      {'ABC': [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-    1:
-      {'ABC': [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-    2:
-      {'ABC': [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-    3:
-      {'ABC': [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-    4:
-      {'ABC': [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-  },
+toppings = [
+    {"id": "5001", "type": None},
+    {"id": "5002", "type": "Glazed"},
+    {"id": "5005", "type": "Sugar"},
+    {"id": "5007", "type": "Powdered Sugar"},
+    {"id": "5006", "type": "Chocolate with Sprinkles"},
+    {"id": "5003", "type": "Chocolate"},
+    {"id": "5004", "type": "Maple"},
 ]
-"""
+
+data = {"id": "0001", "type": "donut", "name": "Cake", "ppu": 0.55, "batters": batters, "topping": toppings}
 ```
 
-The pretty string can be used elsewhere.
+## `pprint(json=True)`:
+
+`prettyformatter` attempts to compromise between alignment,
+readability, and horizontal/vertical compactness.
 
 ```python
-s = pformat([{i: {"ABC": [list(range(30))]} for i in range(5)}])
+from prettyformatter import pprint
 
-print(s)
+pprint(data, json=True)
 """
-[
-    {
-        0:
-            {'ABC': [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        1:
-            {'ABC': [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        2:
-            {'ABC': [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        3:
-            {'ABC': [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        4:
-            {'ABC': [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-    },
-]
-"""
-```
-
-Dataclasses are supported by subclassing the PrettyDataclass.
-
-```python
-from dataclasses import dataclass
-from typing import List
-
-big_data = list(range(1000))
-```
-
-Dataclass fields are pretty formatted.
-
-```python
-@dataclass
-class Data(PrettyDataclass):
-    data: List[int]
-
-
-print(Data(big_data))
-"""
-Data(data=[0, 1, 2, 3, 4, ..., 997, 998, 999])
-"""
-```
-
-Long dataclasses are split into multiple lines.
-
-```python
-@dataclass
-class MultiData(PrettyDataclass):
-    x: List[int]
-    y: List[int]
-    z: List[int]
-
-
-print(MultiData(big_data, big_data, big_data))
-"""
-MultiData(
-    x=[0, 1, 2, 3, 4, ..., 997, 998, 999],
-    y=[0, 1, 2, 3, 4, ..., 997, 998, 999],
-    z=[0, 1, 2, 3, 4, ..., 997, 998, 999],
-)
-"""
-```
-
-Nested data is indented deeper.
-
-```python
-@dataclass
-class NestedData(PrettyDataclass):
-    data: List[List[int]]
-
-
-print(NestedData([big_data] * 1000))
-"""
-NestedData(
-    data=[
-            [0, 1, 2, 3, 4, ..., 997, 998, 999],
-            [0, 1, 2, 3, 4, ..., 997, 998, 999],
-            [0, 1, 2, 3, 4, ..., 997, 998, 999],
-            [0, 1, 2, 3, 4, ..., 997, 998, 999],
-            [0, 1, 2, 3, 4, ..., 997, 998, 999],
-            ...,
-            [0, 1, 2, 3, 4, ..., 997, 998, 999],
-            [0, 1, 2, 3, 4, ..., 997, 998, 999],
-            [0, 1, 2, 3, 4, ..., 997, 998, 999],
+{
+    "id":
+        "0001",
+    "type":
+        "donut",
+    "name":
+        "Cake",
+    "ppu":
+        0.55,
+    "batters":
+        [
+            {"id": "1001", "type": "Regular"},
+            {"id": "1002", "type": "Chocolate"},
+            {"id": "1003", "type": "Blueberry"},
+            {"id": "1004", "type": "Devil's Food"},
         ],
-)
+    "topping":
+        [
+            {"id": "5001", "type": null},
+            {"id": "5002", "type": "Glazed"},
+            {"id": "5005", "type": "Sugar"},
+            {"id": "5007", "type": "Powdered Sugar"},
+            {"id": "5006", "type": "Chocolate with Sprinkles"},
+            {"id": "5003", "type": "Chocolate"},
+            {"id": "5004", "type": "Maple"},
+        ],
+}
 """
 ```
 
-If there are more than 3 fields, then fields and their values are
-split, similar to a dict.
+## `pprint(file=file)`:
 
-Also, if there are 3 or less fields but the dataclass is long and
-the field names are of unequal lengths, then fields and their
-values are split.
+`pprint` supports the same parameters as `print`, meaning saving to
+files is as easy as `file=file`.
+
+```python
+from prettyformatter import pprint
+
+with open("cake.json", mode="w") as file:
+    pprint(data, json=True, file=file)
+```
+
+## `PrettyDataclass`
+
+`prettyformatter` supports dataclasses easily.
 
 ```python
 @dataclass
@@ -200,93 +119,57 @@ print(Person("Jane Doe", "2001-01-01", "012-345-6789", "123 Sample St."))
 """
 Person(
     name=
-        'Jane Doe',
+        "Jane Doe",
     birthday=
-        '2001-01-01',
+        "2001-01-01",
     phone_number=
-        '012-345-6789',
+        "012-345-6789",
     address=
-        '123 Sample St.',
+        "123 Sample St.",
 )
 """
 ```
 
-Named tuples work like dataclasses, but requires `pprint` instead of
-`print`.
-
-```python
-from typing import NamedTuple
-
-big_data = list(range(1000))
-
-
-class Data(NamedTuple):
-    data: List[int]
-
-
-pprint(Data(big_data))
-"""
-Data(data=[0, 1, 2, 3, 4, ..., 997, 998, 999])
-"""
-```
-
-Custom formatters for your classes can be defined.
-
-```python
-class PrettyHelloWorld(PrettyClass):
-
-    def __pformat__(self, specifier, depth, indent, shorten):
-        return f"Hello world! Got {specifier!r}, {depth}, {indent}, {shorten}."
-
-
-print(PrettyHelloWorld())
-"""
-Hello world! Got '', 0, 4, True.
-"""
-```
-
-Use f-strings with your classes.
-
-```python
-"""
-format_spec ::= [[[shorten|]depth>>]indent:][specifier]
-shorten     ::= T | F
-depth       ::= digit+
-indent      ::= digit+ without leading 0
-specifier   ::= anything else you want to support e.g. ".2f"
-"""
-
-print(f"{PrettyHelloWorld():F|5>>6:.2f}")
-"""
-Hello World! Got '.2f', 5, 6, False.
-"""
-```
+## `register`
 
 Custom formatters for existing classes can be registered.
 
 ```python
 import numpy as np
-
 @register(np.ndarray)
-def pformat_ndarray(obj, specifier, depth, indent, shorten):
+def pformat_ndarray(obj, specifier, depth, indent, shorten, json):
+    if json:
+        return pformat(obj.tolist(), specifier, depth, indent, shorten, json)
     with np.printoptions(formatter=dict(all=lambda x: format(x, specifier))):
         return repr(obj).replace("\n", "\n" + " " * depth)
 
 pprint(dict.fromkeys("ABC", np.arange(9).reshape(3, 3)))
 """
 {
-    'A':
+    "A":
         array([[0, 1, 2],
                [3, 4, 5],
                [6, 7, 8]]),
-    'B':
+    "B":
         array([[0, 1, 2],
                [3, 4, 5],
                [6, 7, 8]]),
-    'C':
+    "C":
         array([[0, 1, 2],
                [3, 4, 5],
                [6, 7, 8]]),
+}
+"""
+
+pprint(dict.fromkeys("ABC", np.arange(9).reshape(3, 3)), json=True)
+"""
+{
+    "A":
+        [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
+    "B":
+        [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
+    "C":
+        [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
 }
 """
 ```

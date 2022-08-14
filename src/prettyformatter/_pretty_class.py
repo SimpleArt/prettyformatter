@@ -11,7 +11,7 @@ Self = TypeVar("Self", bound="PrettyClass")
 
 # Formatting options accepted.
 FSTRING_FORMATTER = re.compile(
-    "(?:(?P<shorten>[TF][|])?(?:(?P<depth>[0-9]+)>>)?(?P<indent>[1-9][0-9]*):)?"
+    "(?:(?P<json>[j][!])?(?P<shorten>[TF][|])?(?:(?P<depth>[0-9]+)>>)?(?P<indent>[1-9][0-9]*):)?"
     "(?P<specifier>.*?)"
 )
 
@@ -24,17 +24,20 @@ class PrettyClass:
 
     Implement `__pformat__` for custom `pformat` behavior.
 
+    For the full documentation, see:
+        https://simpleart.github.io/prettyformatter/PrettyClass
+
     Example
     --------
         >>> class PrettyHelloWorld(PrettyClass):
         ...     
-        ...     def __pformat__(self, specifier, depth, indent, shorten):
-        ...         return "Hello world! Got {specifier!r}, {depth}, {indent}, {shorten}."
+        ...     def __pformat__(self, specifier, depth, indent, shorten, json):
+        ...         return f"Hello world! Got {specifier!r}, {depth}, {indent}, {shorten}, {json}."
         ... 
         >>> pprint(PrettyHelloWorld())
-        Hello world! Got '', 0, 4, True.
-        >>> f"{PrettyHelloWorld():F|5>>6:.2f}"
-        Hello World! Got '.2f', 5, 6, False
+        Hello world! Got '', 0, 4, True, False.
+        >>> f"{PrettyHelloWorld():j!F|5>>6:.2f}"
+        Hello World! Got '.2f', 5, 6, False, True
 
     See `help(prettyformatter)` for more information.
     """
@@ -50,9 +53,11 @@ class PrettyClass:
         match = FSTRING_FORMATTER.fullmatch(specifier)
         if match is None:
             raise ValueError(f"Invalid format specifier: {specifier!r}")
-        shorten, depth, indent, specifier = match.groups()
+        json, shorten, depth, indent, specifier = match.groups()
         kwargs = {}
-        if shorten is not None:
+        if json is not None:
+            kwargs["json"] = True
+        elif shorten is not None:
             kwargs["shorten"] = shorten == "T"
         if depth is not None:
             kwargs["depth"] = int(depth)
