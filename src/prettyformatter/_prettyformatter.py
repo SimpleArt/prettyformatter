@@ -323,7 +323,8 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
                     ])
                 + (",\n" + " " * depth + ")")
             )
-        if len({len(name) for name in cls._fields}) > 1:
+        field_lengths = {len(f.name) for f in cls._fields}
+        if len(field_lengths) > 1 or {1, 2, 3}.isdisjoint(field_lengths):
             return (
                 (f"{cls.__name__}(\n" + " " * depth_plus)
                 + (",\n" + " " * depth_plus).join([

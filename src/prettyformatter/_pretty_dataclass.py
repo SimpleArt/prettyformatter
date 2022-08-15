@@ -108,7 +108,8 @@ class PrettyDataclass(PrettyClass):
                 ])
                 + (",\n" + " " * depth + ")")
             )
-        if len({len(f.name) for f in fields(cls)}) > 1:
+        field_lengths = {len(f.name) for f in fields(cls)}
+        if len(field_lengths) > 1 or {1, 2, 3}.isdisjoint(field_lengths):
             return (
                 (f"{cls.__name__}(\n" + " " * depth_plus)
                 + (",\n" + " " * depth_plus).join([

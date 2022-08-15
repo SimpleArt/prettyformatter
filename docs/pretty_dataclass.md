@@ -92,8 +92,9 @@ NestedData(
 
 ### Many Fields
 
-If many fields are used, or if the field names do not align when split
-into multiple lines, then dict-styled hanging indents are used.
+If there are more than 3 fields or the field names are not short and
+alignable, then the names and values are aligned similar to a
+dictionary.
 
 ```python
 from dataclasses import dataclass

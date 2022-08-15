@@ -33,8 +33,6 @@ from prettyformatter import pprint, pformat, register
 `prettyformatter` works with JSON data.
 
 ```python
-from prettyformatter import pprint
-
 batters = [
     {"id": "1001", "type": "Regular"},
     {"id": "1002", "type": "Chocolate"},
@@ -251,7 +249,7 @@ print(s)
 
 ## Custom Classes
 
-### Dataclasses:
+### Dataclasses
 
 Dataclasses are supported by subclassing the `PrettyDataclass`. Pretty
 formatting a dataclass causes its fields to be pretty printed.
@@ -328,8 +326,9 @@ NestedData(
 """
 ```
 
-If there are 3 or fewer fields, their field names are aligned, and each
-field fits on one line,
+If there are more than 3 fields or the field names are not short and
+alignable, then the names and values are aligned similar to a
+dictionary.
 
 ```python
 @dataclass
@@ -355,8 +354,9 @@ Person(
 """
 ```
 
-### Tuples:
-Named tuples work like dataclasses, but requires `pprint` instead of
+### Tuples
+
+Named tuples work like dataclasses, but require `pprint` instead of
 `print`.
 
 ```python
@@ -375,7 +375,7 @@ Data(data=[0, 1, 2, 3, 4, ..., 997, 998, 999])
 """
 ```
 
-### Custom formatters:
+### Custom formatters
 Custom formatters for your classes can be defined.
 
 ```python
