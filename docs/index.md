@@ -5,7 +5,7 @@ JSON, dataclasses, named tuples, and any custom formatted object such
 as Numpy arrays.
 
 For a comparison to other pretty formatters, see
-[Other Formatters](https://simpleart.github.io/prettyformatter/comparison/).
+[Other Formatters](https://simpleart.github.io/prettyformatter/other_formatters/).
 
 ## Installation
 
