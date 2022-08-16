@@ -356,7 +356,7 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
             return f"{obj:{s}}"
         except (TypeError, ValueError):
             return f"{obj:{specifier}}"
-    s = pformat_collection(obj, specifier, depth, indent, shorten)
+    s = pformat_collection(obj, **with_indent)
     if matches_repr(cls, frozenset):
         return f"{cls.__name__}()" if len(obj) == 0 else f"{cls.__name__}({{{s}}})"
     elif matches_repr(cls, UserList, list):
