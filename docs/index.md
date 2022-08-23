@@ -381,13 +381,13 @@ Custom formatters for your classes can be defined.
 ```python
 class PrettyHelloWorld(PrettyClass):
 
-    def __pformat__(self, specifier, depth, indent, shorten):
-        return f"Hello world! Got {specifier!r}, {depth}, {indent}, {shorten}."
+    def __pformat__(self, specifier, depth, indent, shorten, json):
+        return f"Hello world! Got {specifier!r}, {depth}, {indent}, {shorten}, {json}."
 
 
 print(PrettyHelloWorld())
 """
-Hello world! Got '', 0, 4, True.
+Hello world! Got '', 0, 4, True, False.
 """
 ```
 
