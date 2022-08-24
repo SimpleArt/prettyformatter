@@ -248,6 +248,8 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
         pass
     elif obj is None:
         return "null"
+    elif type(obj) is bool:
+        return str(obj).lower()
     elif is_dataclass(cls):
         return pformat_dict({f.name: getattr(obj, f.name) for f in fields(cls)}, **with_indent)
     elif issubclass(cls, Mapping):
