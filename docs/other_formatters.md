@@ -31,7 +31,7 @@ previously mentioned formatters.
 [2]: Although supported, does not produce valid reprs e.g. `(1, 2) -> [1, 2]`.
 
 [3]: Works for JSON which only uses dictionaries, lists, and numeric values.
-Does not work with `None` (`"null"`) and strings (`'"strings"'` not `"'strings'"`).
+Does not work with `None` (`"null"`), strings (`'"strings"'` not `"'strings'"`), or booleans (`"true"` and `"false"`).
 
 ## Installation
 
@@ -81,14 +81,10 @@ from prettyformatter import pprint
 pprint(data)
 """
 {
-    "id":
-        "0001",
-    "type":
-        "donut",
-    "name":
-        "Cake",
-    "ppu":
-        0.55,
+    "id"    : "0001",
+    "type"  : "donut",
+    "name"  : "Cake",
+    "ppu"   : 0.55,
     "batters":
         [
             {"id": "1001", "type": "Regular"},
@@ -98,7 +94,7 @@ pprint(data)
         ],
     "topping":
         [
-            {"id": "5001", "type": "None"},
+            {"id": "5001", "type": None},
             {"id": "5002", "type": "Glazed"},
             {"id": "5005", "type": "Sugar"},
             {"id": "5007", "type": "Powdered Sugar"},

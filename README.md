@@ -1,8 +1,8 @@
 # prettyformatter
 
-Pretty formatter enables pretty formatting using hanging indents,
-dataclasses, ellipses, and simple customizability by registering
-formatters.
+Pretty formatter enables pretty formatting using aligned and hanging
+indents for JSON, dataclasses, named tuples, and any custom formatted
+object such as Numpy arrays.
 
 For the full documentation, see
 [here](https://simpleart.github.io/prettyformatter/).
@@ -66,14 +66,10 @@ from prettyformatter import pprint
 pprint(data, json=True)
 """
 {
-    "id":
-        "0001",
-    "type":
-        "donut",
-    "name":
-        "Cake",
-    "ppu":
-        0.55,
+    "id"    : "0001",
+    "type"  : "donut",
+    "name"  : "Cake",
+    "ppu"   : 0.55,
     "batters":
         [
             {"id": "1001", "type": "Regular"},
@@ -83,7 +79,7 @@ pprint(data, json=True)
         ],
     "topping":
         [
-            {"id": "5001", "type": null},
+            {"id": "5001", "type": None},
             {"id": "5002", "type": "Glazed"},
             {"id": "5005", "type": "Sugar"},
             {"id": "5007", "type": "Powdered Sugar"},
@@ -168,12 +164,9 @@ pprint(dict.fromkeys("ABC", np.arange(9).reshape(3, 3)))
 pprint(dict.fromkeys("ABC", np.arange(9).reshape(3, 3)), json=True)
 """
 {
-    "A":
-        [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
-    "B":
-        [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
-    "C":
-        [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
+    "A" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
+    "B" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
+    "C" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
 }
 """
 ```

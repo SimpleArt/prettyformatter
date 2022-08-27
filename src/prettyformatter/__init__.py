@@ -1,7 +1,7 @@
 """
-Pretty formatter enables pretty formatting using hanging indents for
-JSON, dataclasses, named tuples, and any custom formatted object such
-as Numpy arrays.
+Pretty formatter enables pretty formatting using aligned and hanging
+indents for JSON, dataclasses, named tuples, and any custom formatted
+object such as Numpy arrays.
 
 For the full documentation, see:
     https://simpleart.github.io/prettyformatter/
@@ -35,14 +35,10 @@ Examples
     JSON Data Printing:
         >>> pprint(data, json=True)
         {
-            "id":
-                "0001",
-            "type":
-                "donut",
-            "name":
-                "Cake",
-            "ppu":
-                0.55,
+            "id"    : "0001",
+            "type"  : "donut",
+            "name"  : "Cake",
+            "ppu"   : 0.55,
             "batters":
                 [
                     {"id": "1001", "type": "Regular"},
@@ -75,16 +71,11 @@ Examples
         >>> pprint([{i: {"ABC": [list(range(30))]} for i in range(5)}])
         [
             {
-                0:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-                1:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-                2:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-                3:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-                4:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                0   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                1   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                2   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                3   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                4   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
             },
         ]
 
@@ -92,16 +83,11 @@ Examples
         >>> pprint([{i: {"ABC": [list(range(30))]} for i in range(5)}], indent=2)
         [
           {
-            0:
-              {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-            1:
-              {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-            2:
-              {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-            3:
-              {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-            4:
-              {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+            0 : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+            1 : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+            2 : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+            3 : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+            4 : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
           },
         ]
 
@@ -118,16 +104,11 @@ Examples
         >>> print(s)
         [
             {
-                0:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-                1:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-                2:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-                3:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-                4:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                0   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                1   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                2   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                3   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                4   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
             },
         ]
 
@@ -192,15 +173,12 @@ Examples
         }
         >>> pprint(dict.fromkeys("ABC", np.arange(9).reshape(3, 3)), json=True)
         {
-            "A":
-                [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
-            "B":
-                [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
-            "C":
-                [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
+            "A" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
+            "B" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
+            "C" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
         }
 """
-__version__ = "1.4.5"
+__version__ = "1.5.0"
 
 from ._pretty_class import PrettyClass
 from ._pretty_dataclass import PrettyDataclass

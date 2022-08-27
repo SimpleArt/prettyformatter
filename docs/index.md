@@ -1,8 +1,8 @@
 # PrettyFormatter
 
-Pretty Formatter enables pretty formatting using hanging indents for
-JSON, dataclasses, named tuples, and any custom formatted object such
-as Numpy arrays.
+Pretty Formatter enables pretty formatting using aligned and hanging
+indents for JSON, dataclasses, named tuples, and any custom formatted
+object such as Numpy arrays.
 
 For a comparison to other pretty formatters, see
 [Other Formatters](https://simpleart.github.io/prettyformatter/other_formatters/).
@@ -64,14 +64,10 @@ Support for JSON data is also as easy as `pprint(json=True)`.
 pprint(data, json=True)
 """
 {
-    "id":
-        "0001",
-    "type":
-        "donut",
-    "name":
-        "Cake",
-    "ppu":
-        0.55,
+    "id"    : "0001",
+    "type"  : "donut",
+    "name"  : "Cake",
+    "ppu"   : 0.55,
     "batters":
         [
             {"id": "1001", "type": "Regular"},
@@ -81,7 +77,7 @@ pprint(data, json=True)
         ],
     "topping":
         [
-            {"id": "5001", "type": null},
+            {"id": "5001", "type": None},
             {"id": "5002", "type": "Glazed"},
             {"id": "5005", "type": "Sugar"},
             {"id": "5007", "type": "Powdered Sugar"},
@@ -118,22 +114,26 @@ pprint(list(range(30)), shorten=False)
 
 ## Indentation
 
-Pretty Formatter uses hanging indents when necessary. For dictionaries,
-keys are considered 1 indent deep and values are considered 2 indents
-deep.
+Pretty Formatter uses hanging indents when necessary. If a dictionary
+reasonably fits on one line, then that is directly used. Otherwise,
+key-value pairs that fit on one line will have their separating `":"`
+aligned every so often, while key-value pairs that do not fit on one
+line will use hanging indents with the values indented an extra time.
 
 ### Small Output
 
 ```python
-{outer: inner}
+{key: value}
 ```
 
 ### Large Output
 
 ```python
 {
-    outer:
-        inner,
+    short   : short,
+    longer  : longer,
+    key:
+        too_long,
 }
 ```
 
@@ -148,16 +148,11 @@ pprint([{i: {"ABC": [list(range(30))]} for i in range(5)}])
 """
 [
     {
-        0:
-            {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        1:
-            {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        2:
-            {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        3:
-            {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        4:
-            {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+        0   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+        1   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+        2   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+        3   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+        4   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
     },
 ]
 """
@@ -172,16 +167,11 @@ pprint([{i: {"ABC": [list(range(30))]} for i in range(5)}], indent=2)
 """
 [
   {
-    0:
-      {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-    1:
-      {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-    2:
-      {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-    3:
-      {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-    4:
-      {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+    0 : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+    1 : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+    2 : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+    3 : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+    4 : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
   },
 ]
 """
@@ -190,16 +180,11 @@ pprint([{i: {"ABC": [list(range(30))]} for i in range(5)}], depth=4, indent=2)
 """
 [
       {
-        0:
-          {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        1:
-          {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        2:
-          {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        3:
-          {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        4:
-          {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+        0 : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+        1 : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+        2 : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+        3 : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+        4 : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
       },
     ]
 """
@@ -232,16 +217,11 @@ print(s)
 """
 [
     {
-        0:
-            {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        1:
-            {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        2:
-            {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        3:
-            {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-        4:
-            {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+        0   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+        1   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+        2   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+        3   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+        4   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
     },
 ]
 """
@@ -308,10 +288,11 @@ class NestedData(PrettyDataclass):
     data: List[List[int]]
 
 
-print(NestedData([big_data] * 1000))
+print(NestedData([list(range(1000))] * 1000))
 """
 NestedData(
-    data=[
+    data=
+        [
             [0, 1, 2, 3, 4, ..., 997, 998, 999],
             [0, 1, 2, 3, 4, ..., 997, 998, 999],
             [0, 1, 2, 3, 4, ..., 997, 998, 999],
@@ -362,14 +343,12 @@ Named tuples work like dataclasses, but require `pprint` instead of
 ```python
 from typing import NamedTuple
 
-big_data = list(range(1000))
-
 
 class Data(NamedTuple):
     data: List[int]
 
 
-pprint(Data(big_data))
+pprint(Data(list(range(1000))))
 """
 Data(data=[0, 1, 2, 3, 4, ..., 997, 998, 999])
 """
@@ -441,12 +420,9 @@ pprint(dict.fromkeys("ABC", np.arange(9).reshape(3, 3)))
 pprint(dict.fromkeys("ABC", np.arange(9).reshape(3, 3)), json=True)
 """
 {
-    "A":
-        [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
-    "B":
-        [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
-    "C":
-        [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
+    "A" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
+    "B" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
+    "C" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
 }
 """
 ```

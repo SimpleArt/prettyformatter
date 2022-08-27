@@ -64,16 +64,11 @@ def pprint(*args: Any, specifier: str = "", depth: int = 0, indent: int = 4, sho
         >>> pprint([{i: {"ABC": [list(range(30))]} for i in range(5)}])
         [
             {
-                0:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-                1:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-                2:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-                3:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-                4:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                0   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                1   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                2   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                3   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                4   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
             },
         ]
 
@@ -170,16 +165,11 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
         >>> pprint([{i: {"ABC": [list(range(30))]} for i in range(5)}])
         [
             {
-                0:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-                1:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-                2:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-                3:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
-                4:
-                    {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                0   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                1   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                2   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                3   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
+                4   : {"ABC": [[0, 1, 2, 3, 4, ..., 27, 28, 29]]},
             },
         ]
 
@@ -298,8 +288,8 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
             return (
                 (f"{cls.__name__}(\n" + " " * depth_plus)
                 + (",\n" + " " * depth_plus).join([
-                        f"{name}=\n    "
-                        + " " * depth_plus
+                        f"{name}=\n"
+                        + " " * (depth_plus + indent)
                         + pformat(getattr(obj, name), **plus_plus_indent)
                         for name in cls._fields
                     ])
@@ -320,7 +310,7 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
                 (f"{cls.__name__}(\n" + " " * depth_plus)
                 + (",\n" + " " * depth_plus).join([
                         f"{name}="
-                        + pformat(getattr(obj, name), **no_indent).replace("\n", "\n    " + " " * depth_plus)
+                        + pformat(getattr(obj, name), **no_indent).replace("\n", "\n" + " " * (depth_plus + indent))
                         for name in cls._fields
                     ])
                 + (",\n" + " " * depth + ")")
@@ -330,8 +320,8 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
             return (
                 (f"{cls.__name__}(\n" + " " * depth_plus)
                 + (",\n" + " " * depth_plus).join([
-                        f"{name}=\n    "
-                        + " " * depth_plus
+                        f"{name}=\n"
+                        + " " * (depth_plus + indent)
                         + pformat(getattr(obj, name), **plus_plus_indent)
                         for name in cls._fields
                     ])
@@ -414,12 +404,9 @@ def register(*args: Type[T]) -> Callable[[Formatter[T]], Formatter[T]]:
         }
         >>> pprint(dict.fromkeys("ABC", np.arange(9).reshape(3, 3)), json=True)
         {
-            "A":
-                [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
-            "B":
-                [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
-            "C":
-                [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
+            "A" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
+            "B" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
+            "C" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
         }
     """
     for cls in args:
@@ -432,6 +419,28 @@ def register(*args: Type[T]) -> Callable[[Formatter[T]], Formatter[T]]:
         return func
     return decorator
 
+def align(indentations: Mapping[int, int]) -> Mapping[int, bool]:
+    """
+    Estimates reasonable alignments for key-value pairs by grouping
+    nearby alignments to the deeper indentation.
+    """
+    L = sorted(indentations)
+    moved = 0
+    unmoved = 0
+    is_moved = [False] * len(L)
+    for i in reversed(range(len(L))):
+        if i + 1 < len(L):
+            temp = unmoved + indentations[L[i + 1]] - indentations[L[i]] + 1
+        else:
+            temp = 0
+        if moved > unmoved:
+            unmoved = moved
+            is_moved[i + 1] = True
+        moved = temp
+    if moved > unmoved:
+        is_moved[0] = True
+    return dict(zip(L, is_moved))
+
 @register(UserDict, dict)
 def pformat_dict(obj: Mapping[Any, Any], specifier: str, depth: int, indent: int, shorten: bool, json: bool) -> str:
     """Formats a mapping as a dict."""
@@ -440,23 +449,11 @@ def pformat_dict(obj: Mapping[Any, Any], specifier: str, depth: int, indent: int
     plus_indent = dict(specifier=specifier, depth=depth_plus, indent=indent, shorten=shorten, json=json)
     plus_plus_indent = dict(specifier=specifier, depth=depth_plus + indent, indent=indent, shorten=shorten, json=json)
     if len(obj) < 10:
-        s = ", ".join([
-                f"{pformat(key, **no_indent)}: {pformat(value, **no_indent)}"
-                for key, value in obj.items()
-            ])
-        if len(s) < 25 and "\n" not in s or len(s) < 50:
-            if "\n" not in s:
-                return f"{{{s}}}"
-            s = (
-                ("{\n" + " " * depth_plus)
-                + ",\n".join([
-                        f"{pformat(key, **no_indent)}: {pformat(value, **no_indent)}"
-                        for key, value in obj.items()
-                    ]).replace("\n", "\n" + " " * depth_plus)
-                + ("\n" + " " * depth + "}")
-            )
-            if max(map(len, s.splitlines())) < 50 and len(s) < 120:
-                return s
+        keys = [pformat(key, **no_indent) for key in obj]
+        values = [pformat(value, **no_indent) for value in obj.values()]
+        s = ", ".join([f"{k}: {v}" for k, v in zip(keys, values)])
+        if len(s) < 50 and "\n" not in s:
+            return f"{{{s}}}"
     if len(obj) < 10 or not shorten:
         content = [
             (pformat(key, **plus_indent), pformat(value, **plus_plus_indent))
@@ -475,14 +472,42 @@ def pformat_dict(obj: Mapping[Any, Any], specifier: str, depth: int, indent: int
             ],
         ]
     s = ", ".join(["..." if c is ... else f"{c[0]}: {c[1]}" for c in content])
-    if len(s) < 50 and "\n" not in s:
+    if len(s) < 100 and "\n" not in s:
         return f"{{{s}}}"
+    indentations = Counter(
+        (len(c[0]) + indent - 1) // indent
+        for c in content
+        if c is not ...
+        if len(c[0]) + len(c[1]) < 90
+        if "\n" not in c[0]
+        if "\n" not in c[1]
+    )
+    alignment = align(indentations)
     return (
         ("{\n" + " " * depth_plus)
         + (",\n" + " " * depth_plus).join([
                 "..."
-                if c is ...
-                else c[0] + ":\n" + " " * (depth_plus + indent) + c[1]
+                    if
+                c is ...
+                    else
+                (
+                    c[0]
+                    + " " * (indent * alignment[(len(c[0]) + indent - 1) // indent])
+                    + " " * (-len(c[0]) % indent)
+                    + f": {c[1]}"
+                )
+                    if
+                (
+                    len(c[0]) + len(c[1]) < 90
+                    and "\n" not in c[0]
+                    and "\n" not in c[1]
+                )
+                    else
+                (
+                    f"{c[0]}:\n"
+                    + " " * (depth_plus + indent)
+                    + c[1]
+                )
                 for c in content
             ])
         + (",\n" + " " * depth + "}")
