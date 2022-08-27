@@ -434,13 +434,17 @@ def align(indentations: Mapping[int, int]) -> Mapping[int, bool]:
         if i + 1 < len(L):
             temp = unmoved + indentations[L[i + 1]] - indentations[L[i]] + 1
         else:
-            temp = 0
+            temp = unmoved
         if moved > unmoved:
             unmoved = moved
             is_moved[i + 1] = True
+            if i + 2 < len(L):
+                is_moved[i + 2] = False
         moved = temp
     if moved > unmoved:
         is_moved[0] = True
+        if 1 < len(L):
+            is_moved[1] = False
     return dict(zip(L, is_moved))
 
 @register(UserDict, dict)
