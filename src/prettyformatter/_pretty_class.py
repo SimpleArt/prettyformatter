@@ -2,18 +2,11 @@
 Implements:
     PrettyClass
 """
-import re
 from typing import TypeVar
 
 from ._prettyformatter import pformat
 
 Self = TypeVar("Self", bound="PrettyClass")
-
-# Formatting options accepted.
-FSTRING_FORMATTER = re.compile(
-    "(?:(?P<json>[j][!])?(?P<shorten>[TF][|])?(?:(?P<depth>[0-9]+)>>)?(?P<indent>[1-9][0-9]*):)?"
-    "(?P<specifier>.*?)"
-)
 
 
 class PrettyClass:
@@ -50,20 +43,7 @@ class PrettyClass:
 
         See `help(prettyformatter)` for more information.
         """
-        match = FSTRING_FORMATTER.fullmatch(specifier)
-        if match is None:
-            raise ValueError(f"Invalid format specifier: {specifier!r}")
-        json, shorten, depth, indent, specifier = match.groups()
-        kwargs = {}
-        if json is not None:
-            kwargs["json"] = True
-        elif shorten is not None:
-            kwargs["shorten"] = shorten == "T"
-        if depth is not None:
-            kwargs["depth"] = int(depth)
-        if indent is not None:
-            kwargs["indent"] = int(indent)
-        return pformat(self, specifier, **kwargs)
+        return pformat(self, specifier)
 
     def __str__(self: Self) -> str:
         """

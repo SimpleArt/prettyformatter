@@ -339,12 +339,15 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
         for c, formatter in reversed(FORMATTERS):
             if matches_repr(cls, c):
                 return formatter(obj, specifier, depth, indent, shorten, json)
-        if json:
-            s = f"j!{depth}>>{indent}:{specifier}"
-        else:
-            s = f"{'FT'[shorten]}|{depth}>>{indent}:{specifier}"
+        from prettyformatter import PrettyClass
+        if matches_repr(cls, PrettyClass):
+            for cls in cls.mro():
+                if not matches_repr(cls, PrettyClass):
+                    if cls.__format__ is object.__format__:
+                        return cls.__repr__(obj)
+                    return cls.__format__(obj, specifier)
         try:
-            return f"{obj:{s}}"
+            return f"{obj:{specifier}}"
         except (TypeError, ValueError):
             return f"{obj:{specifier}}"
     s = pformat_collection(obj, **with_indent)
