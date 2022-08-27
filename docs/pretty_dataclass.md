@@ -75,7 +75,8 @@ class NestedData(PrettyDataclass):
 print(NestedData([list(range(1000))] * 1000))
 """
 NestedData(
-    data=[
+    data=
+        [
             [0, 1, 2, 3, 4, ..., 997, 998, 999],
             [0, 1, 2, 3, 4, ..., 997, 998, 999],
             [0, 1, 2, 3, 4, ..., 997, 998, 999],
