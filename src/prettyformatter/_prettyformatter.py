@@ -15,7 +15,6 @@ from typing import Any, Callable, Collection, Iterable, List, Mapping, Tuple, Ty
 
 T = TypeVar("T")
 Formatter = Callable[[T, str, int, int, bool], str]
-Self = TypeVar("Self", bound="PrettyDataclass")
 
 FORMATTERS: List[Tuple[Type[Any], Callable[[Any], str]]] = []
 
