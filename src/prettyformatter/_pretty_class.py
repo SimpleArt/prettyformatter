@@ -43,6 +43,16 @@ class PrettyClass:
         """
         return pformat(self, specifier)
 
+    def __pformat__(self: Self, specifier: str, depth: int, indent: int, shorten: bool, json: bool) -> str:
+        """
+        Default implementation does nothing.
+        """
+        formatter = super(PrettyClass, type(self)).__format__
+        if formatter is not object.__format__:
+            return formatter(self, specifier)
+        else:
+            return super(PrettyClass, type(self)).__repr__(self)
+
     def __str__(self: Self) -> str:
         """
         Implements the format specification for `prettyformatter` with
