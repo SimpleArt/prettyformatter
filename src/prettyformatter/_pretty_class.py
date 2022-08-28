@@ -29,8 +29,6 @@ class PrettyClass:
         ... 
         >>> pprint(PrettyHelloWorld())
         Hello world! Got '', 0, 4, True, False.
-        >>> f"{PrettyHelloWorld():j!F|5>>6:.2f}"
-        Hello World! Got '.2f', 5, 6, False, True
 
     See `help(prettyformatter)` for more information.
     """

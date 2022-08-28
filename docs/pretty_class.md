@@ -22,14 +22,4 @@ print(PrettyHelloWorld())
 """
 Hello world! Got '', 0, 4, True, False.
 """
-
-print(f"{PrettyHelloWorld():F|5>>6:.2f}")
-"""
-Hello world! Got '.2f', 5, 6, False, False.
-"""
-
-pprint(PrettyHelloWorld(), json=True)
-"""
-Hello world! Got '', 0, 4, False, True.
-"""
 ```

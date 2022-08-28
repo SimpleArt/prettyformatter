@@ -370,23 +370,6 @@ Hello world! Got '', 0, 4, True, False.
 """
 ```
 
-Use f-strings with your classes.
-
-```python
-"""
-format_spec ::= [[[shorten|]depth>>]indent:][specifier]
-shorten     ::= T | F
-depth       ::= digit+
-indent      ::= digit+ without leading 0
-specifier   ::= anything else you want to support e.g. ".2f"
-"""
-
-print(f"{PrettyHelloWorld():F|5>>6:.2f}")
-"""
-Hello World! Got '.2f', 5, 6, False.
-"""
-```
-
 Custom formatters for existing classes can be registered.
 
 ```python
