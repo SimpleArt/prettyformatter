@@ -358,15 +358,22 @@ Data(data=[0, 1, 2, 3, 4, ..., 997, 998, 999])
 Custom formatters for your classes can be defined.
 
 ```python
-class PrettyHelloWorld(PrettyClass):
+class Dog(PrettyClass):
 
-    def __pformat__(self, specifier, depth, indent, shorten, json):
-        return f"Hello world! Got {specifier!r}, {depth}, {indent}, {shorten}, {json}."
+    def __init__(self, name, **kwargs):
+        self.name = name
+        self.attributes = kwargs
+
+    def __pargs__(self):
+        return (self.name,)
+
+    def __pkwargs__(self):
+        return self.attributes
 
 
-print(PrettyHelloWorld())
+print(Dog("Fido", age=3))
 """
-Hello world! Got '', 0, 4, True, False.
+Dog("Fido", age=3)
 """
 ```
 

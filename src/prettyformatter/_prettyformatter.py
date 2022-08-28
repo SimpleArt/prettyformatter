@@ -7,16 +7,20 @@ Implements:
 import json as _json
 import operator
 import re
+import sys
 from collections import ChainMap, Counter, OrderedDict, UserDict
 from collections import UserList, defaultdict, deque
-from dataclasses import fields, is_dataclass
 from itertools import islice
-from typing import Any, Callable, Collection, Iterable, List, Mapping, Tuple, Type, TypeVar, Union
+from typing import Any, Callable, Dict, Iterable, List
+from typing import Mapping, Tuple, Type, TypeVar, Union
+
+if sys.version_info >= (3, 7):
+    from dataclasses import fields, is_dataclass
 
 T = TypeVar("T")
 Formatter = Callable[[T, str, int, int, bool], str]
 
-FORMATTERS: List[Tuple[Type[Any], Callable[[Any], str]]] = []
+FORMATTERS = []
 
 def matches_repr(subcls: Type[Any], *cls: Type[Any]) -> bool:
     """Checks if the class is a subclass that has not overridden the __repr__."""
@@ -25,7 +29,15 @@ def matches_repr(subcls: Type[Any], *cls: Type[Any]) -> bool:
         for c in cls
     )
 
-def pprint(*args: Any, specifier: str = "", depth: int = 0, indent: int = 4, shorten: bool = True, json: bool = False, **kwargs: Any) -> None:
+def pprint(
+    *args: Any,
+    specifier: str = "",
+    depth: int = 0,
+    indent: int = 4,
+    shorten: bool = True,
+    json: bool = False,
+    **kwargs: Any
+) -> None:
     """
     Pretty formats an object and prints it.
 
@@ -100,31 +112,52 @@ def pprint(*args: Any, specifier: str = "", depth: int = 0, indent: int = 4, sho
           depth = 4
     """
     if type(specifier) is not str:
-        raise TypeError(f"pprint specifier expected a string, got {specifier!r}")
+        raise TypeError("pprint specifier expected a string, got " + repr(specifier))
     try:
         depth = operator.index(depth)
     except TypeError:
-        raise TypeError(f"pprint could not interpret depth as an integer, got {depth!r}") from None
+        raise TypeError("pprint could not interpret depth as an integer, got " + repr(depth)) from None
     try:
         indent = operator.index(indent)
     except TypeError:
-        raise TypeError(f"pprint could not interpret indent as an integer, got {indent!r}") from None
+        raise TypeError("pprint could not interpret indent as an integer, got " + repr(indent)) from None
     try:
         shorten = bool(shorten)
     except TypeError:
-        raise TypeError(f"pprint could not interpret shorten as a boolean, got {shorten!r}") from None
+        raise TypeError("pprint could not interpret shorten as a boolean, got " + repr(shorten)) from None
     try:
         json = bool(json)
     except TypeError:
-        raise TypeError(f"pprint could not interpret json as a boolean, got {json!r}") from None
+        raise TypeError("pprint could not interpret json as a boolean, got " + repr(json)) from None
     if depth < 0:
         raise ValueError("pprint expected depth >= 0")
     if indent <= 0:
         raise ValueError("pprint expected indent > 0")
     shorten &= not json
-    print(*[pformat(arg, specifier, depth=depth, indent=indent, shorten=shorten, json=json) for arg in args], **kwargs)
+    print(
+        *[
+            pformat(
+                arg,
+                specifier,
+                depth=depth,
+                indent=indent,
+                shorten=shorten,
+                json=json,
+            )
+            for arg in args
+        ],
+        **kwargs,
+    )
 
-def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, shorten: bool = True, json: bool = False) -> str:
+def pformat(
+    obj: Any,
+    specifier: str = "",
+    *,
+    depth: int = 0,
+    indent: int = 4,
+    shorten: bool = True,
+    json: bool = False
+) -> str:
     """
     Formats an object and depths the inner contents, if any, by the
     specified amount.
@@ -201,23 +234,23 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
           depth = 4
     """
     if type(specifier) is not str:
-        raise TypeError(f"pformat specifier expected a string, got {specifier!r}")
+        raise TypeError("pformat specifier expected a string, got " + repr(specifier))
     try:
         depth = operator.index(depth)
     except TypeError:
-        raise TypeError(f"pformat could not interpret depth as an integer, got {depth!r}") from None
+        raise TypeError("pformat could not interpret depth as an integer, got " + repr(depth)) from None
     try:
         indent = operator.index(indent)
     except TypeError:
-        raise TypeError(f"pformat could not interpret indent as an integer, got {indent!r}") from None
+        raise TypeError("pformat could not interpret indent as an integer, got " + repr(indent)) from None
     try:
         shorten = bool(shorten)
     except TypeError:
-        raise TypeError(f"pformat could not interpret shorten as a boolean, got {shorten!r}") from None
+        raise TypeError("pformat could not interpret shorten as a boolean, got " + repr(shorten)) from None
     try:
         json = bool(json)
     except TypeError:
-        raise TypeError(f"pformat could not interpret json as a boolean, got {json!r}") from None
+        raise TypeError("pformat could not interpret json as a boolean, got " + repr(json)) from None
     if depth < 0:
         raise ValueError("pformat expected depth >= 0")
     if indent <= 0:
@@ -239,38 +272,70 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
         return "null"
     elif type(obj) is bool:
         return str(obj).lower()
-    elif is_dataclass(cls):
-        return pformat_dict({f.name: getattr(obj, f.name) for f in fields(cls)}, **with_indent)
+    elif sys.version_info >= (3, 7) and is_dataclass(cls):
+        return pformat_dict(
+            {f.name: getattr(obj, f.name) for f in fields(cls)},
+            **with_indent,
+        )
     elif issubclass(cls, Mapping):
-        return pformat_dict(obj, **with_indent)
-    elif issubclass(cls, Collection):
-        return f"[{pformat_collection(obj, **with_indent)}]"
+        return pformat_dict(obj, **with_indent,)
+    elif issubclass(cls, Sequence):
+        return "[" + pformat_collection(obj, **with_indent) + "]"
     elif issubclass(cls, Iterable):
-        return f"[{pformat_collection(list(obj), **with_indent)}]"
+        return "[" + pformat_collection(list(obj), **with_indent) + "]"
     if hasattr(cls, "__pformat__"):
         return cls.__pformat__(obj, specifier, depth, indent, shorten, json)
     elif matches_repr(cls, str):
         return repr(obj)
     elif matches_repr(cls, ChainMap):
-        return f"{cls.__name__}({pformat(obj.maps, **with_indent)[1:-1]})"
+        return (
+            cls.__name__
+            + "("
+            + pformat_collection(obj.maps, **with_indent)
+            + ")"
+        )
     elif matches_repr(cls, Counter):
         if len(obj) == 0:
-            return f"{cls.__name__}()"
-        return f"{cls.__name__}({pformat_dict(obj, **with_indent)})"
+            return cls.__name__ + "()"
+        return (
+            cls.__name__
+            + "("
+            + pformat_dict(obj, **with_indent)
+            + ")"
+        )
     elif matches_repr(cls, OrderedDict):
         if len(obj) == 0:
-            return f"{cls.__name__}()"
-        return f"{cls.__name__}([{pformat_collection(obj.items(), **with_indent)}])"
+            return cls.__name__ + "()"
+        return (
+            cls.__name__
+            + "(["
+            + pformat_collection(obj.items(), **with_indent)
+            + "])"
+        )
     elif matches_repr(cls, defaultdict):
-        return f"{cls.__name__}{pformat((obj.default_factory, dict(obj)), **with_indent)}"
+        return cls.__name__ + pformat(
+            (obj.default_factory, dict(obj)),
+            **with_indent,
+        )
     elif matches_repr(cls, deque):
         if obj.maxlen is None:
-            return f"{cls.__name__}({pformat_collection(obj, **with_indent)})"
-        return f"{cls.__name__}{pformat((list(obj), obj.maxlen), **with_indent)}"
+            return (
+                cls.__name__
+                + "("
+                + pformat_collection(obj, **with_indent)
+                + ")"
+            )
+        return cls.__name__ + pformat(
+            (list(obj), obj.maxlen),
+            **with_indent,
+        )
     elif (
         all(
             parent is expected
-            for parent, expected in zip(cls.mro(), [cls, tuple, object])
+            for parent, expected in zip(
+                cls.mro(),
+                [cls, tuple, object],
+            )
         )
         and all(
             hasattr(cls, attr)
@@ -283,77 +348,40 @@ def pformat(obj: Any, specifier: str = "", *, depth: int = 0, indent: int = 4, s
             )
         )
     ):
-        if len(cls._fields) > 3:
-            return (
-                (f"{cls.__name__}(\n" + " " * depth_plus)
-                + (",\n" + " " * depth_plus).join([
-                        f"{name}=\n"
-                        + " " * (depth_plus + indent)
-                        + pformat(getattr(obj, name), **plus_plus_indent)
-                        for name in cls._fields
-                    ])
-                + (",\n" + " " * depth + ")")
-            )
-        s = (
-            f"{cls.__name__}("
-            + ", ".join([
-                    f"{name}={pformat(getattr(obj, name), **no_indent)}"
-                    for name in cls._fields
-                ])
-            + ")"
-        )
-        if len(s) < 25 and "\n" not in s or len(s) < 50:
-            if "\n" not in s:
-                return s
-            return (
-                (f"{cls.__name__}(\n" + " " * depth_plus)
-                + (",\n" + " " * depth_plus).join([
-                        f"{name}="
-                        + pformat(getattr(obj, name), **no_indent).replace("\n", "\n" + " " * (depth_plus + indent))
-                        for name in cls._fields
-                    ])
-                + (",\n" + " " * depth + ")")
-            )
-        field_lengths = {len(f.name) for f in cls._fields}
-        if len(field_lengths) > 1 or {1, 2, 3}.isdisjoint(field_lengths):
-            return (
-                (f"{cls.__name__}(\n" + " " * depth_plus)
-                + (",\n" + " " * depth_plus).join([
-                        f"{name}=\n"
-                        + " " * (depth_plus + indent)
-                        + pformat(getattr(obj, name), **plus_plus_indent)
-                        for name in cls._fields
-                    ])
-                + (",\n" + " " * depth + ")")
-            )
         return (
-            (f"{cls.__name__}(\n" + " " * depth_plus)
-            + (",\n" + " " * depth_plus).join([
-                    f"{name}="
-                    + pformat(getattr(obj, name), **plus_plus_indent)
-                    for name in cls._fields
-                ])
-            + (",\n" + " " * depth + ")")
+            cls.__name__
+            + pformat_class(
+                (),
+                {name: getattr(obj, name) for obj in cls._fields},
+                **with_indent,
+            )
         )
     elif not matches_repr(cls, UserList, frozenset, list, set, tuple):
         for c, formatter in reversed(FORMATTERS):
             if matches_repr(cls, c):
-                return formatter(obj, specifier, depth, indent, shorten, json)
-        try:
-            return f"{obj:{specifier}}"
-        except (TypeError, ValueError):
-            return f"{obj:{specifier}}"
+                return formatter(
+                    obj,
+                    specifier,
+                    depth,
+                    indent,
+                    shorten,
+                    json,
+                )
+        return format(obj, specifier)
     s = pformat_collection(obj, **with_indent)
     if matches_repr(cls, frozenset):
-        return f"{cls.__name__}()" if len(obj) == 0 else f"{cls.__name__}({{{s}}})"
+        return (
+            cls.__name__
+            + ("()" if len(obj) == 0 else "({" + s + "})")
+        )
     elif matches_repr(cls, UserList, list):
-        return f"[{s}]"
+        return "[" + s + "]"
     elif matches_repr(cls, set):
-        return f"{cls.__name__}()" if len(obj) == 0 else f"{{{s}}}"
+        return cls.__name__ + "()" if len(obj) == 0 else "{" + s + "}"
     elif len(obj) == 1 and not s.strip().endswith(","):
-        return f"({s},)"
+        return "(" + s + ",)"
     else:
-        return f"({s})"
+        return "(" + s + ")"
 
 def register(*args: Type[T]) -> Callable[[Formatter[T]], Formatter[T]]:
     """
@@ -406,10 +434,10 @@ def register(*args: Type[T]) -> Callable[[Formatter[T]], Formatter[T]]:
     """
     for cls in args:
         if not isinstance(cls, type):
-            raise TypeError(f"register expected a type for cls, got {cls!r}")
+            raise TypeError("register expected a type for cls, got " + repr(cls))
     def decorator(func: Formatter[T]) -> Formatter[T]:
         if not callable(func):
-            raise TypeError(f"@register expected a formatter function, got {func!r}")
+            raise TypeError("@register expected a formatter function, got " + repr(func))
         FORMATTERS.extend((cls, func) for cls in args)
         return func
     return decorator
@@ -448,31 +476,46 @@ def pformat_dict(obj: Mapping[Any, Any], specifier: str, depth: int, indent: int
     plus_indent = dict(specifier=specifier, depth=depth_plus, indent=indent, shorten=shorten, json=json)
     plus_plus_indent = dict(specifier=specifier, depth=depth_plus + indent, indent=indent, shorten=shorten, json=json)
     if len(obj) < 10:
-        keys = [pformat(key, **no_indent) for key in obj]
-        values = [pformat(value, **no_indent) for value in obj.values()]
-        s = ", ".join([f"{k}: {v}" for k, v in zip(keys, values)])
+        keys = [
+            pformat(key, **no_indent)
+            for key in obj
+        ]
+        values = [
+            pformat(value, **no_indent)
+            for value in obj.values()
+        ]
+        s = ", ".join([k + ": " + v for k, v in zip(keys, values)])
         if len(s) < 50 and "\n" not in s:
-            return f"{{{s}}}"
+            return "{" + s + "}"
     if len(obj) < 10 or not shorten:
         content = [
-            (pformat(key, **plus_indent), pformat(value, **plus_plus_indent))
+            (
+                pformat(key, **plus_indent),
+                pformat(value, **plus_plus_indent)
+            )
             for key, value in obj.items()
         ]
     else:
         content = [
             *[
-                (pformat(key, **plus_indent), pformat(value, **plus_plus_indent))
+                (
+                    pformat(key, **plus_indent),
+                    pformat(value, **plus_plus_indent),
+                )
                 for key, value in islice(obj.items(), 5)
             ],
             ...,
             *[
-                (pformat(key, **plus_indent), pformat(value, **plus_plus_indent))
+                (
+                    pformat(key, **plus_indent),
+                    pformat(value, **plus_plus_indent),
+                )
                 for key, value in islice(obj.items(), len(obj) - 3, None)
             ],
         ]
-    s = ", ".join(["..." if c is ... else f"{c[0]}: {c[1]}" for c in content])
+    s = ", ".join(["..." if c is ... else (c[0] + ": " + c[1]) for c in content])
     if len(s) < 100 and "\n" not in s:
-        return f"{{{s}}}"
+        return "{" + s + "}"
     indentations = Counter(
         (len(c[0]) + indent - 1) // indent
         for c in content
@@ -493,7 +536,8 @@ def pformat_dict(obj: Mapping[Any, Any], specifier: str, depth: int, indent: int
                     c[0]
                     + " " * (indent * alignment[(len(c[0]) + indent - 1) // indent])
                     + " " * (-len(c[0]) % indent)
-                    + f": {c[1]}"
+                    + ": "
+                    + c[1]
                 )
                     if
                 (
@@ -503,7 +547,8 @@ def pformat_dict(obj: Mapping[Any, Any], specifier: str, depth: int, indent: int
                 )
                     else
                 (
-                    f"{c[0]}:\n"
+                    c[0]
+                    + ":\n"
                     + " " * (depth_plus + indent)
                     + c[1]
                 )
@@ -512,8 +557,8 @@ def pformat_dict(obj: Mapping[Any, Any], specifier: str, depth: int, indent: int
         + (",\n" + " " * depth + "}")
     )
 
-def pformat_collection(obj: Collection[Any], specifier: str, depth: int, indent: int, shorten: bool, json: bool) -> str:
-    """Formats as an collection as a list without the enclosing brackets."""
+def pformat_collection(obj: Iterable[Any], specifier: str, depth: int, indent: int, shorten: bool, json: bool) -> str:
+    """Formats as an iterable as a list without the enclosing brackets."""
     depth_plus = depth + indent
     no_indent = dict(specifier=specifier, depth=0, indent=indent, shorten=shorten, json=json)
     plus_indent = dict(specifier=specifier, depth=depth_plus, indent=indent, shorten=shorten, json=json)
@@ -530,11 +575,14 @@ def pformat_collection(obj: Collection[Any], specifier: str, depth: int, indent:
                 c.replace("\n", "\n" + " " * depth_plus)
                 for c in content
             ])
-        s = "\n" + " " * depth_plus + f"{s},\n" + " " * depth
+        s = "\n" + " " * depth_plus + s + ",\n" + " " * depth
         if max(map(len, s.splitlines())) < 50 and len(s) < 120:
             return s
     if len(obj) < 10 or not shorten:
-        content = [pformat(x, **plus_indent) for x in obj]
+        content = [
+            pformat(x, **plus_indent)
+            for x in obj
+        ]
     else:
         content = [
             *[
@@ -554,4 +602,84 @@ def pformat_collection(obj: Collection[Any], specifier: str, depth: int, indent:
         ("\n" + " " * depth_plus)
         + (",\n" + " " * depth_plus).join(content)
         + (",\n" + " " * depth)
+    )
+
+def pformat_class(args: Tuple[Any, ...], kwargs: Dict[str, Any], specifier: str, depth: int, indent: int, shorten: bool, json: bool) -> str:
+    """
+    Formats an object as "cls_name(*args, **kwargs)" without the
+    "cls_name", unless `json=True` in which case the result is
+    "[args, kwargs]".
+    """
+    if json:
+        return pformat([args, kwargs], specifier=specifier, depth=depth, indent=indent, shorten=shorten, json=json)
+    depth_plus = depth + indent
+    no_indent = dict(specifier=specifier, depth=0, indent=indent, shorten=shorten, json=json)
+    plus_plus_indent = dict(specifier=specifier, depth=depth_plus + indent, indent=indent, shorten=shorten, json=json)
+    with_indent = dict(specifier=specifier, depth=depth, indent=indent, shorten=shorten, json=json)
+    if len(args) + len(kwargs) > 3:
+        return (
+            ("(\n" + " " * depth_plus)
+            + (",\n" + " " * depth_plus).join([
+                pformat(x, **plus_indent)
+                for x in args
+            ])
+            + (",\n" + " " * depth_plus) * (len(args) & len(kwargs) > 0)
+            + (",\n" + " " * depth_plus).join([
+                name
+                + "=\n"
+                + " " * (depth_plus + indent)
+                + pformat(value, **plus_plus_indent)
+                for name, value in kwargs.items()
+            ])
+            + (",\n" + " " * depth + ")")
+        )
+    s = (
+        "("
+        + ", ".join([
+            pformat(x, **no_indent)
+            for x in args
+        ])
+        + ", " * (len(args) & len(kwargs) > 0)
+        + ", ".join([
+            name
+            + "="
+            + pformat(value, **no_indent)
+            for name, value in kwargs.items()
+        ])
+        + ")"
+    )
+    if len(s) < 100 and "\n" not in s:
+        return s
+    kwarg_lengths = {len(name) for name in kwargs}
+    if len(kwarg_lengths) > 1 or any(L >= indent for L in kwarg_lengths):
+        return (
+            ("(\n" + " " * depth_plus)
+            + (",\n" + " " * depth_plus).join([
+                pformat(x, **plus_indent)
+                for x in args
+            ])
+            + (",\n" + " " * depth_plus) * (len(args) & len(kwargs) > 0)
+            + (",\n" + " " * depth_plus).join([
+                name
+                + "=\n"
+                + " " * (depth_plus + indent)
+                + pformat(value, **plus_plus_indent)
+                for name, value in kwargs.items()
+            ])
+            + (",\n" + " " * depth + ")")
+        )
+    return (
+        ("(\n" + " " * depth_plus)
+        + (",\n" + " " * depth_plus).join([
+            pformat(x, **plus_indent)
+            for x in args
+        ])
+        + (",\n" + " " * depth_plus) * (len(args) & len(kwargs) > 0)
+        + (",\n" + " " * depth_plus).join([
+            name
+            + "="
+            + pformat(value, **plus_plus_indent)
+            for name, value in kwargs.items()
+        ])
+        + (",\n" + " " * depth + ")")
     )

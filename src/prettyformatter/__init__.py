@@ -146,6 +146,22 @@ Examples
                 '123 Sample St.',
         )
 
+    Custom Classes:
+        >>> class Dog(PrettyClass):
+        ...     
+        ...     def __init__(self, name, **kwargs):
+        ...         self.name = name
+        ...         self.attributes = kwargs
+        ...     
+        ...     def __pargs__(self):
+        ...         return (self.name,)
+        ...     
+        ...     def __pkwargs__(self):
+        ...         return self.attributes
+        ... 
+        >>> Dog("Fido", age=3)
+        Dog("Fido", age=3)
+
     Custom Formatters:
         >>> import numpy as np
         >>> 
@@ -178,8 +194,12 @@ Examples
             "C" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
         }
 """
-__version__ = "1.5.2"
+__version__ = "1.6.0"
+
+import sys as _sys
 
 from ._pretty_class import PrettyClass
-from ._pretty_dataclass import PrettyDataclass
 from ._prettyformatter import pformat, pprint, register
+
+if _sys.version_info >= (3, 7):
+    from ._pretty_dataclass import PrettyDataclass

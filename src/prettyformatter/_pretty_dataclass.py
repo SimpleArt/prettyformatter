@@ -3,7 +3,7 @@ Implements:
     PrettyDataclass
 """
 from dataclasses import fields, is_dataclass
-from typing import Any, Type, TypeVar
+from typing import Any, Dict, Type, TypeVar
 
 from ._pretty_class import PrettyClass
 from ._prettyformatter import pformat
@@ -61,71 +61,13 @@ class PrettyDataclass(PrettyClass):
         cls.__repr__ = cls.__repr__
         return super().__init_subclass__(**kwargs)
 
-    def __pformat__(self: Self, specifier: str, depth: int, indent: int, shorten: bool, json: bool) -> str:
+    def __pkwargs__(self: Self) -> Dict[str, Any]:
         """
         Implements pretty formatting for dataclasses based on the
-        dataclass fields. If the subclass is not a dataclass, returns
-        the parent implementation of format(self, specifier).
+        dataclass fields. If the subclass is not a dataclass, does not
+        use the dataclass implementation.
         """
         cls = type(self)
-        depth_plus = depth + indent
-        no_indent = dict(specifier=specifier, depth=0, indent=indent, shorten=shorten, json=json)
-        plus_plus_indent = dict(specifier=specifier, depth=depth_plus + indent, indent=indent, shorten=shorten, json=json)
-        with_indent = dict(specifier=specifier, depth=depth, indent=indent, shorten=shorten, json=json)
         if not is_dataclass(cls):
-            return super(PrettyClass, cls).__format__(self, specifier)
-        elif json:
-            return pformat({f.name: getattr(self, f.name) for f in fields(cls)}, **with_indent)
-        elif len(fields(cls)) > 3:
-            return (
-                (f"{cls.__name__}(\n" + " " * depth_plus)
-                + (",\n" + " " * depth_plus).join([
-                    f"{f.name}=\n    "
-                    + " " * depth_plus
-                    + pformat(getattr(self, f.name), **plus_plus_indent)
-                    for f in fields(cls)
-                ])
-                + (",\n" + " " * depth + ")")
-            )
-        s = (
-            f"{cls.__name__}("
-            + ", ".join([
-                f"{f.name}={pformat(getattr(self, f.name), **no_indent)}"
-                for f in fields(cls)
-            ])
-            + ")"
-        )
-        if len(s) < 25 and "\n" not in s or len(s) < 50:
-            if "\n" not in s:
-                return s
-            return (
-                (f"{cls.__name__}(\n" + " " * depth_plus)
-                + (",\n" + " " * depth_plus).join([
-                    f"{f.name}="
-                    + pformat(getattr(self, f.name), **
-                              no_indent).replace("\n", "\n    " + " " * depth_plus)
-                    for f in fields(cls)
-                ])
-                + (",\n" + " " * depth + ")")
-            )
-        field_lengths = {len(f.name) for f in fields(cls)}
-        if len(field_lengths) > 1 or {1, 2, 3}.isdisjoint(field_lengths):
-            return (
-                (f"{cls.__name__}(\n" + " " * depth_plus)
-                + (",\n" + " " * depth_plus).join([
-                    f"{f.name}=\n    "
-                    + " " * depth_plus
-                    + pformat(getattr(self, f.name), **plus_plus_indent)
-                    for f in fields(cls)
-                ])
-                + (",\n" + " " * depth + ")")
-            )
-        return (
-            (f"{cls.__name__}(\n" + " " * depth_plus)
-            + (",\n" + " " * depth_plus).join([
-                f"{f.name}="
-                + pformat(getattr(self, f.name), **plus_plus_indent)
-                for f in fields(cls)
-            ])
-            + (",\n" + " " * depth + ")")
-        )
+            raise NotImplementedError
+        return {f.name: getattr(self, f.name) for f in fields(cls)}
