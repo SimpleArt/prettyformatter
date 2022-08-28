@@ -8,6 +8,9 @@ Implement `__pargs__` and/or `__pkwargs__` if the desired `pformat` is
 `cls_name(*args, **kwargs)`.
 
 ```python
+from prettyformatter import PrettyClass
+
+
 class Dog(PrettyClass):
 
     def __init__(self, name, **kwargs):
