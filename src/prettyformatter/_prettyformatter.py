@@ -36,7 +36,7 @@ def pprint(
     indent: int = 4,
     shorten: bool = True,
     json: bool = False,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> None:
     """
     Pretty formats an object and prints it.
@@ -156,7 +156,7 @@ def pformat(
     depth: int = 0,
     indent: int = 4,
     shorten: bool = True,
-    json: bool = False
+    json: bool = False,
 ) -> str:
     """
     Formats an object and depths the inner contents, if any, by the
@@ -469,7 +469,14 @@ def align(indentations: Mapping[int, int]) -> Mapping[int, bool]:
     return dict(zip(L, is_moved))
 
 @register(UserDict, dict)
-def pformat_dict(obj: Mapping[Any, Any], specifier: str, depth: int, indent: int, shorten: bool, json: bool) -> str:
+def pformat_dict(
+    obj: Mapping[Any, Any],
+    specifier: str,
+    depth: int,
+    indent: int,
+    shorten: bool,
+    json: bool,
+) -> str:
     """Formats a mapping as a dict."""
     depth_plus = depth + indent
     no_indent = dict(specifier=specifier, depth=0, indent=indent, shorten=shorten, json=json)
@@ -554,10 +561,17 @@ def pformat_dict(obj: Mapping[Any, Any], specifier: str, depth: int, indent: int
                 )
                 for c in content
             ])
-        + (",\n" + " " * depth + "}")
+        + ("," * (1 - json) + "\n" + " " * depth + "}")
     )
 
-def pformat_collection(obj: Iterable[Any], specifier: str, depth: int, indent: int, shorten: bool, json: bool) -> str:
+def pformat_collection(
+    obj: Iterable[Any],
+    specifier: str,
+    depth: int,
+    indent: int,
+    shorten: bool,
+    json: bool,
+) -> str:
     """Formats as an iterable as a list without the enclosing brackets."""
     depth_plus = depth + indent
     no_indent = dict(specifier=specifier, depth=0, indent=indent, shorten=shorten, json=json)
@@ -575,7 +589,11 @@ def pformat_collection(obj: Iterable[Any], specifier: str, depth: int, indent: i
                 c.replace("\n", "\n" + " " * depth_plus)
                 for c in content
             ])
-        s = "\n" + " " * depth_plus + s + ",\n" + " " * depth
+        s = (
+            ("\n" + " " * depth_plus)
+            + s
+            + ("," * (1 - json) + "\n" + " " * depth)
+        )
         if max(map(len, s.splitlines())) < 50 and len(s) < 120:
             return s
     if len(obj) < 10 or not shorten:
@@ -601,21 +619,29 @@ def pformat_collection(obj: Iterable[Any], specifier: str, depth: int, indent: i
     return (
         ("\n" + " " * depth_plus)
         + (",\n" + " " * depth_plus).join(content)
-        + (",\n" + " " * depth)
+        + ("," * (1 - json) + "\n" + " " * depth)
     )
 
-def pformat_class(args: Tuple[Any, ...], kwargs: Dict[str, Any], specifier: str, depth: int, indent: int, shorten: bool, json: bool) -> str:
+def pformat_class(
+    args: Tuple[Any, ...],
+    kwargs: Dict[str, Any],
+    specifier: str,
+    depth: int,
+    indent: int,
+    shorten: bool,
+    json: bool,
+) -> str:
     """
     Formats an object as "cls_name(*args, **kwargs)" without the
     "cls_name", unless `json=True` in which case the result is
     "[args, kwargs]".
     """
-    if json:
-        return pformat([args, kwargs], specifier=specifier, depth=depth, indent=indent, shorten=shorten, json=json)
     depth_plus = depth + indent
     no_indent = dict(specifier=specifier, depth=0, indent=indent, shorten=shorten, json=json)
     plus_plus_indent = dict(specifier=specifier, depth=depth_plus + indent, indent=indent, shorten=shorten, json=json)
     with_indent = dict(specifier=specifier, depth=depth, indent=indent, shorten=shorten, json=json)
+    if json:
+        return pformat_dict({"args": args, "kwargs": kwargs}, **with_indent)
     if len(args) + len(kwargs) > 3:
         return (
             ("(\n" + " " * depth_plus)

@@ -18,6 +18,9 @@ class PrettyClass:
     For the full documentation, see:
         https://simpleart.github.io/prettyformatter/PrettyClass
 
+    Dunders
+    ---------
+
     Implement `__pargs__` and/or `__pkwargs__` if the desired `pformat` is
     `cls_name(*args, **kwargs)`.
         >>> class Dog(PrettyClass):
@@ -43,6 +46,18 @@ class PrettyClass:
         ... 
         >>> pprint(PrettyHelloWorld())
         Hello world! Got '', 0, 4, True, False.
+
+    JSON serialization
+    --------------------
+
+    If the default `__pformat__` is used and `__pargs__` and/or
+    `__pkwargs__` is implemented, then JSON serialization is done by
+    converting the `args` into a `list` and the `kwargs` into a `dict`.
+    If both are given, they are combined using the format of
+    `{"class": cls_name, "args": list(args), "kwargs": kwargs}`.
+
+        >>> pprint(Dog("Fido", age=3), json=True)
+        {"class": "Dog", "args": ["Fido"], "kwargs": {"age": 3}}
     """
 
     __slots__ = ()
@@ -62,7 +77,7 @@ class PrettyClass:
 
     def __pformat__(self: Self, specifier: str, depth: int, indent: int, shorten: bool, json: bool) -> str:
         """
-        Default implementation does nothing.
+        Default implementation uses __pargs__ and __pkwargs__.
         """
         cls = type(self)
         try:
@@ -95,7 +110,14 @@ class PrettyClass:
             elif kwargs is None:
                 return pformat(args, **with_indent)
             else:
-                return pformat([args, kwargs], **with_indent)
+                return pformat(
+                    {
+                        "class": cls.__name__,
+                        "args": args,
+                        "kwargs": kwargs,
+                    },
+                    **with_indent,
+                )
         elif args is None:
             args = ()
         elif kwargs is None:

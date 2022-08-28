@@ -4,6 +4,9 @@ Base class for implementing pretty classes.
 
 Defines `__format__`, `__str__`, and `__repr__` using `pformat`.
 
+Dunders
+---------
+
 Implement `__pargs__` and/or `__pkwargs__` if the desired `pformat` is
 `cls_name(*args, **kwargs)`.
 
@@ -45,5 +48,20 @@ class PrettyHelloWorld(PrettyClass):
 print(PrettyHelloWorld())
 """
 Hello world! Got '', 0, 4, True, False.
+"""
+
+JSON serialization
+--------------------
+
+If the default `__pformat__` is used and `__pargs__` and/or
+`__pkwargs__` is implemented, then JSON serialization is done by
+converting the `args` into a `list` and the `kwargs` into a `dict`. If
+both are given, they are combined using the format of
+`{"class": cls_name, "args": list(args), "kwargs": kwargs}`.
+
+```python
+pprint(Dog("Fido", age=3), json=True)
+"""
+{"class": "Dog", "args": ["Fido"], "kwargs": {"age": 3}}
 """
 ```

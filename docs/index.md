@@ -375,6 +375,11 @@ print(Dog("Fido", age=3))
 """
 Dog("Fido", age=3)
 """
+
+print(Dog("Fido", age=3), json=True)
+"""
+{"class": "Dog", "args": ["Fido"], "kwargs": {"age": 3}}
+"""
 ```
 
 Custom formatters for existing classes can be registered.
