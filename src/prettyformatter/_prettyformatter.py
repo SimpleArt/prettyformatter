@@ -11,8 +11,8 @@ import sys
 from collections import ChainMap, Counter, OrderedDict, UserDict
 from collections import UserList, defaultdict, deque
 from itertools import islice
-from typing import Any, Callable, Dict, Iterable, List
-from typing import Mapping, Tuple, Type, TypeVar, Union
+from typing import Any, Callable, Dict, Iterable, List, Mapping
+from typing import Sequence, Tuple, Type, TypeVar, Union
 
 if sys.version_info >= (3, 7):
     from dataclasses import fields, is_dataclass
