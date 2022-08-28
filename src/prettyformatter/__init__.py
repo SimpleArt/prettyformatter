@@ -44,7 +44,7 @@ Examples
                     {"id": "1001", "type": "Regular"},
                     {"id": "1002", "type": "Chocolate"},
                     {"id": "1003", "type": "BlueBerry"},
-                    {"id": "1004", "type": "Devil's Food"},
+                    {"id": "1004", "type": "Devil's Food"}
                 ],
             "topping":
                 [
@@ -54,8 +54,8 @@ Examples
                     {"id": "5007", "type": "Powdered Sugar"},
                     {"id": "5006", "type": "Chocolate with Sprinkles"},
                     {"id": "5003", "type": "Chocolate"},
-                    {"id": "5004", "type": "Maple"},
-                ],
+                    {"id": "5004", "type": "Maple"}
+                ]
         }
 
     JSON Data File:
@@ -191,10 +191,10 @@ Examples
         {
             "A" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
             "B" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
-            "C" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
+            "C" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
         }
 """
-__version__ = "1.7.0"
+__version__ = "1.7.1"
 
 import sys as _sys
 

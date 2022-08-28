@@ -75,7 +75,7 @@ pprint(data, json=True)
             {"id": "1001", "type": "Regular"},
             {"id": "1002", "type": "Chocolate"},
             {"id": "1003", "type": "Blueberry"},
-            {"id": "1004", "type": "Devil's Food"},
+            {"id": "1004", "type": "Devil's Food"}
         ],
     "topping":
         [
@@ -85,8 +85,8 @@ pprint(data, json=True)
             {"id": "5007", "type": "Powdered Sugar"},
             {"id": "5006", "type": "Chocolate with Sprinkles"},
             {"id": "5003", "type": "Chocolate"},
-            {"id": "5004", "type": "Maple"},
-        ],
+            {"id": "5004", "type": "Maple"}
+        ]
 }
 """
 ```
@@ -166,7 +166,7 @@ pprint(dict.fromkeys("ABC", np.arange(9).reshape(3, 3)), json=True)
 {
     "A" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
     "B" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
-    "C" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]],
+    "C" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
 }
 """
 ```

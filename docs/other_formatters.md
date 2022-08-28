@@ -30,8 +30,9 @@ previously mentioned formatters.
 
 [2]: Although supported, does not produce valid reprs e.g. `(1, 2) -> [1, 2]`.
 
-[3]: Works for JSON which only uses dictionaries, lists, and numeric values.
-Does not work with `None` (`"null"`), strings (`'"strings"'` not `"'strings'"`), or booleans (`"true"` and `"false"`).
+[3]: Works for JSON which only uses dictionaries, lists, and numeric
+values. Does not work with `None` (`"null"`), strings (`'"strings"'`
+not `"'strings'"`), or booleans (`"true"` and `"false"`).
 
 ## Installation
 
