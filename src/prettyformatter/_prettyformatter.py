@@ -350,7 +350,7 @@ def pformat(
         if align is not None:
             specifier += align
         if isinf(obj) or isnan(obj):
-            if sign in "+ " and not result < 0:
+            if sign in "+ " and not obj < 0:
                 result = " " + result
             if width is not None:
                 specifier += width
