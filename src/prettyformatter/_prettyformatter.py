@@ -12,7 +12,7 @@ from collections import ChainMap, Counter, OrderedDict, UserDict
 from collections import UserList, defaultdict, deque
 from itertools import islice
 from math import isinf, isnan
-from typing import Any, Callable, Dict, Iterable, List, Mapping
+from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional
 from typing import Sequence, Tuple, Type, TypeVar, Union
 
 if sys.version_info >= (3, 7):
@@ -20,6 +20,16 @@ if sys.version_info >= (3, 7):
 
 T = TypeVar("T")
 Formatter = Callable[[T, str, int, int, bool], str]
+Specifiers = Tuple[
+    Optional[str],
+    Optional[str],
+    Optional[str],
+    Optional[str],
+    Optional[str],
+    Optional[str],
+    Optional[str],
+    Optional[str],
+]
 
 FSTRING_FORMATTER = re.compile(
     "(?P<fill>.*?)"
@@ -34,6 +44,19 @@ FSTRING_FORMATTER = re.compile(
 )
 
 FORMATTERS = []
+
+def parse_fstring(
+    specifier: str,
+    cache: Dict[str, Optional[Specifiers]] = OrderedDict(),
+) -> Optional[Specifiers]:
+    if specifier == "":
+        return (None,) * 8
+    elif specifier not in cache:
+        if len(cache) > 4:
+            cache.popitem(last=False)  # type: ignore
+        match = FSTRING_FORMATTER.fullmatch(specifier)
+        cache[specifier] = None if match is None else (*match.groups(),)
+    return cache[specifier]
 
 def matches_repr(subcls: Type[Any], *cls: Type[Any]) -> bool:
     """Checks if the class is a subclass that has not overridden the __repr__."""
@@ -289,10 +312,10 @@ def pformat(
         obj = operator.index(obj)
         if specifier == "":
             return repr(obj)
-        match = FSTRING_FORMATTER.fullmatch(specifier)
-        if match is None:
+        specifiers = parse_fstring(specifier)
+        if specifiers is None:
             return repr(obj)
-        _, align, sign, _, width, _, precision, dtype = match.groups()
+        _, align, sign, _, width, _, precision, dtype = specifiers
         specifier = ""
         if align is not None:
             specifier += align
@@ -319,10 +342,10 @@ def pformat(
             result = repr(obj)
         if specifier == "":
             return result
-        match = FSTRING_FORMATTER.fullmatch(specifier)
-        if match is None:
+        specifiers = parse_fstring(specifier)
+        if specifiers is None:
             return result
-        _, align, sign, _, width, _, precision, dtype = match.groups()
+        _, align, sign, _, width, _, precision, dtype = specifiers
         specifier = ""
         if align is not None:
             specifier += align
