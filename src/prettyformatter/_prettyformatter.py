@@ -11,14 +11,28 @@ import sys
 from collections import ChainMap, Counter, OrderedDict, UserDict
 from collections import UserList, defaultdict, deque
 from itertools import islice
+from math import isinf, isnan
 from typing import Any, Callable, Dict, Iterable, List, Mapping
-from typing import Sequence, Tuple, Type, TypeVar, Union
+from typing import Sequence, SupportsFloat, SupportsIndex, Tuple, Type
+from typing import TypeVar, Union
 
 if sys.version_info >= (3, 7):
     from dataclasses import fields, is_dataclass
 
 T = TypeVar("T")
 Formatter = Callable[[T, str, int, int, bool], str]
+
+FSTRING_FORMATTER = re.compile(
+    "(?P<fill>.*?)"
+    "(?P<align>[<>=^]?)"
+    "(?P<sign>[+ -]?)"
+    "(?P<alternate>[#]?)"
+    "[0]?"
+    "(?P<width>[0-9]*)"
+    "(?P<group>[_,]?)"
+    "(?P<precision>(?:[.][0-9]+)?)"
+    "(?P<dtype>[bcdeEfFgGnosxX%]?)"
+)
 
 FORMATTERS = []
 
@@ -272,6 +286,68 @@ def pformat(
         return "null"
     elif type(obj) is bool:
         return str(obj).lower()
+    elif isinstance(obj, SupportsIndex):
+        obj = operator.index(obj)
+        if specifier == "":
+            return repr(obj)
+        match = FSTRING_FORMATTER.fullmatch(specifier)
+        if match is None:
+            return repr(obj)
+        _, align, sign, _, width, _, precision, dtype = match.groups()
+        specifier = ""
+        if align is not None:
+            specifier += align
+        if sign == " ":
+            specifier += " "
+        if width is not None:
+            specifier += width
+        if dtype is None or dtype in "bcdoxn":
+            return f"{obj:{specifier}}"
+        dtype = dtype.lower()
+        if precision is not None and dtype in "efg%":
+            specifier += precision + dtype
+        if dtype == "%":
+            return f"{100 * obj:{specifier}g}"
+        else:
+            return f"{obj:{specifier}}"
+    elif isinstance(obj, SupportsFloat):
+        obj = float(obj)
+        if isinf(obj):
+            result = "Infinity" if obj > 0 else "-Infinity"
+        elif isnan(obj):
+            result = "NaN"
+        else:
+            result = repr(obj)
+        if specifier == "":
+            return result
+        match = FSTRING_FORMATTER.fullmatch(specifier)
+        if match is None:
+            return result
+        _, align, sign, _, width, _, precision, dtype = match.groups()
+        specifier = ""
+        if align is not None:
+            specifier += align
+        if isinf(obj) or isnan(obj):
+            if sign == " ":
+                result = " " + result
+            if width is not None:
+                specifier += width
+            return f"{result:{specifier}}"
+        if sign == " ":
+            specifier += " "
+        if width is not None:
+            specifier += width
+        if precision is not None:
+            specifier += precision
+        if dtype is None:
+            return f"{obj:{specifier}}"
+        dtype = dtype.lower()
+        if dtype == "%":
+            return f"{100 * obj:{specifier}g}"
+        elif dtype == "n":
+            return f"{obj:{specifier}g}"
+        else:
+            return f"{obj:{specifier}{dtype}}"
     elif sys.version_info >= (3, 7) and is_dataclass(cls):
         return pformat_dict(
             {f.name: getattr(obj, f.name) for f in fields(cls)},
