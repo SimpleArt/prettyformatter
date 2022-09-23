@@ -196,10 +196,10 @@ Examples
 """
 __version__ = "1.7.1"
 
-import sys as _sys
-
 from ._pretty_class import PrettyClass
 from ._prettyformatter import pformat, pprint, register
 
-if _sys.version_info >= (3, 7):
+try:
     from ._pretty_dataclass import PrettyDataclass
+except:
+    pass
