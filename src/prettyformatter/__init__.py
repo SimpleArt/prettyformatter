@@ -194,7 +194,7 @@ Examples
             "C" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
         }
 """
-__version__ = "1.7.2"
+__version__ = "1.7.3"
 
 from ._pretty_class import PrettyClass
 from ._prettyformatter import pformat, pprint, register

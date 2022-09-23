@@ -13,8 +13,7 @@ from collections import UserList, defaultdict, deque
 from itertools import islice
 from math import isinf, isnan
 from typing import Any, Callable, Dict, Iterable, List, Mapping
-from typing import Sequence, SupportsFloat, SupportsIndex, Tuple, Type
-from typing import TypeVar, Union
+from typing import Sequence, Tuple, Type, TypeVar, Union
 
 if sys.version_info >= (3, 7):
     from dataclasses import fields, is_dataclass
@@ -286,7 +285,7 @@ def pformat(
         return "null"
     elif type(obj) is bool:
         return str(obj).lower()
-    elif isinstance(obj, SupportsIndex):
+    elif hasattr(type(obj), "__index__"):
         obj = operator.index(obj)
         if specifier == "":
             return repr(obj)
@@ -310,7 +309,7 @@ def pformat(
             return f"{100 * obj:{specifier}g}"
         else:
             return f"{obj:{specifier}}"
-    elif isinstance(obj, SupportsFloat):
+    elif hasattr(type(obj), "__float__"):
         obj = float(obj)
         if isinf(obj):
             result = "Infinity" if obj > 0 else "-Infinity"
