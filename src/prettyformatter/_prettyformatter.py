@@ -605,6 +605,22 @@ def pformat_dict(
         s = ", ".join([k + ": " + v for k, v in zip(keys, values)])
         if len(s) < 50 and "\n" not in s:
             return "{" + s + "}"
+    if shorten:
+        key_types = {*map(type, obj)}
+        if len(key_types) > 1:
+            shorten = False
+        elif any(issubclass(cls, Iterable) for cls in key_types):
+            if len({type(x) for key in obj for x in key}) > 1:
+                shorten = False
+        del key_types
+    if shorten:
+        value_types = {*map(type, obj.values())}
+        if len(value_types) > 1:
+            shorten = False
+        elif any(issubclass(cls, Iterable) for cls in value_types):
+            if len({type(x) for value in obj for x in value}) > 1:
+                shorten = False
+        del value_types
     if len(obj) < 10 or not shorten:
         content = [
             (
@@ -706,6 +722,14 @@ def pformat_collection(
         )
         if max(map(len, s.splitlines())) < 50 and len(s) < 120:
             return s
+    if shorten:
+        types = {*map(type, obj)}
+        if len(types) > 1:
+            shorten = False
+        elif any(issubclass(cls, Iterable) for cls in types):
+            if len({type(y) for x in obj for y in x}) > 1:
+                shorten = False
+        del types
     if len(obj) < 10 or not shorten:
         content = [
             pformat(x, **plus_indent)
