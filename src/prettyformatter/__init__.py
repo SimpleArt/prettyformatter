@@ -136,14 +136,10 @@ Examples
         >>> 
         >>> Person("Jane Doe", "2001-01-01", "012-345-6789", "123 Sample St.")
         Person(
-            name=
-                'Jane Doe',
-            birthday=
-                '2001-01-01',
-            phone_number=
-                '012-345-6789',
-            address=
-                '123 Sample St.',
+            name        = "Jane Doe",
+            birthday    = "2001-01-01",
+            phone_number    = "012-345-6789",
+            address     = "123 Sample St.",
         )
 
     Custom Classes:
@@ -194,7 +190,7 @@ Examples
             "C" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
         }
 """
-__version__ = "1.7.4"
+__version__ = "1.8.0"
 
 from ._pretty_class import PrettyClass
 from ._prettyformatter import pformat, pprint, register

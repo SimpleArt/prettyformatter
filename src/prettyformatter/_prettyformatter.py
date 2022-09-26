@@ -550,8 +550,21 @@ def align(indentations: Mapping[int, int]) -> Mapping[int, bool]:
     unmoved = 0
     is_moved = [False] * len(L)
     for i in reversed(range(len(L))):
-        if i + 1 < len(L):
-            temp = unmoved + indentations[L[i + 1]] - indentations[L[i]] + 1
+        if i + 2 < len(L):
+            temp = (
+                unmoved
+                + 5
+                - 2 * indentations[L[i + 2]]
+                + 4 * indentations[L[i + 1]]
+                - 2 * indentations[L[i]]
+            )
+        elif i + 1 < len(L):
+            temp = (
+                unmoved
+                + 2
+                + 2 * indentations[L[i + 1]]
+                - 2 * indentations[L[i]]
+            )
         else:
             temp = unmoved
         if moved > unmoved:
