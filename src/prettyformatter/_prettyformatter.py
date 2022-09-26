@@ -634,15 +634,14 @@ def pformat_dict(
     s = ", ".join(["..." if c is ... else (c[0] + ": " + c[1]) for c in content])
     if len(s) < 100 and "\n" not in s:
         return "{" + s + "}"
-    indentations = Counter(
+    alignment = align(Counter(
         (len(c[0]) + indent - 1) // indent
         for c in content
         if c is not ...
         if len(c[0]) + len(c[1]) < 90
         if "\n" not in c[0]
         if "\n" not in c[1]
-    )
-    alignment = align(indentations)
+    ))
     return (
         ("{\n" + " " * depth_plus)
         + (",\n" + " " * depth_plus).join([
@@ -754,6 +753,13 @@ def pformat_class(
     if json:
         return pformat_dict({"args": args, "kwargs": kwargs}, **with_indent)
     if len(args) + len(kwargs) > 3:
+        content = [pformat(value, **no_indent) for value in kwargs.values()]
+        alignment = align(Counter(
+            len(name) // indent
+            for name, value in zip(kwargs, content)
+            if len(name) + len(value) < 90
+            if "\n" not in kwargs
+        ))
         return (
             ("(\n" + " " * depth_plus)
             + (",\n" + " " * depth_plus).join([
@@ -762,11 +768,23 @@ def pformat_class(
             ])
             + (",\n" + " " * depth_plus) * (len(args) & len(kwargs) > 0)
             + (",\n" + " " * depth_plus).join([
-                name
-                + "=\n"
-                + " " * (depth_plus + indent)
-                + pformat(value, **plus_plus_indent)
-                for name, value in kwargs.items()
+                (
+                    name
+                    + "=\n"
+                    + " " * (depth_plus + indent)
+                    + pformat(value, **plus_plus_indent)
+                )
+                    if
+                "\n" in c
+                    else
+                (
+                    name
+                    + " " * (1 + indent * alignment[len(name) // indent])
+                    + " " * (~len(name) % indent)
+                    + "= "
+                    + c
+                )
+                for (name, value), c in zip(kwargs.items(), content)
             ])
             + (",\n" + " " * depth + ")")
         )
@@ -789,6 +807,13 @@ def pformat_class(
         return s
     kwarg_lengths = {len(name) for name in kwargs}
     if len(kwarg_lengths) > 1 or any(L >= indent for L in kwarg_lengths):
+        content = [pformat(value, **no_indent) for value in kwargs.values()]
+        alignment = align(Counter(
+            len(name) // indent
+            for name, value in zip(kwargs, content)
+            if len(name) + len(value) < 90
+            if "\n" not in kwargs
+        ))
         return (
             ("(\n" + " " * depth_plus)
             + (",\n" + " " * depth_plus).join([
@@ -797,11 +822,23 @@ def pformat_class(
             ])
             + (",\n" + " " * depth_plus) * (len(args) & len(kwargs) > 0)
             + (",\n" + " " * depth_plus).join([
-                name
-                + "=\n"
-                + " " * (depth_plus + indent)
-                + pformat(value, **plus_plus_indent)
-                for name, value in kwargs.items()
+                (
+                    name
+                    + "=\n"
+                    + " " * (depth_plus + indent)
+                    + pformat(value, **plus_plus_indent)
+                )
+                    if
+                "\n" in c
+                    else
+                (
+                    name
+                    + " " * (1 + indent * alignment[len(name) // indent])
+                    + " " * (~len(name) % indent)
+                    + "= "
+                    + c
+                )
+                for (name, value), c in zip(kwargs.items(), content)
             ])
             + (",\n" + " " * depth + ")")
         )

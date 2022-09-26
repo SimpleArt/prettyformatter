@@ -26,13 +26,27 @@ previously mentioned formatters.
 | `IPython` | Y | N<sup>[3]</sup> | Y | Y | Y | N | N | Y | Y | Y |
 | `yaml.dump` | N | N | Y | N | N | N | Y | Y<sup>[2]</sup> | Y<sup>[2]</sup> | N |
 
+|  | `prettyformatter` | `json.dumps` | `pprint.pprint` | `IPython` | `yaml.dump` |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| Repr | Y | Y<sup>[1]</sup> | Y | Y | N |
+| JSON | Y | Y | N<sup>[2]</sup> | N<sup>[2]</sup> | N |
+| H-Compact | Y | Y | N | Y | Y |
+| V-Compact | Y | N | Y | Y | N |
+| Short Output | Y | N | N | Y | N |
+| Align Dict Values | Y | N | N | N | N |
+| Align List | Y | Y | Y | N | Y |
+| Dataclasses | Y | N | Y | Y | Y<sup>[3]</sup> |
+| Named Tuples | Y | Y<sup>[3]</sup> | Y | Y | Y<sup>[3]</sup> |
+| Numpy Arrays | Y | N | N | Y | N |
+
 [1]: Turns `None` into `"null"`.
 
-[2]: Although supported, does not produce valid reprs e.g. `(1, 2) -> [1, 2]`.
+[2]: Works for JSON which only uses dictionaries, lists, and numeric
+values. Does not work with `None` (`"null"`), `math.inf` (`"Infinity"`),
+`math.nan` (`"NaN"`), strings (`'"strings"'` not `"'strings'"`), or
+booleans (`"true"` and `"false"`).
 
-[3]: Works for JSON which only uses dictionaries, lists, and numeric
-values. Does not work with `None` (`"null"`), strings (`'"strings"'`
-not `"'strings'"`), or booleans (`"true"` and `"false"`).
+[3]: Although supported, does not produce valid reprs e.g. `(1, 2) -> [1, 2]`.
 
 ## Installation
 

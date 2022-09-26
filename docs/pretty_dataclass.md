@@ -112,14 +112,10 @@ class Person(PrettyDataclass):
 print(Person("Jane Doe", "2001-01-01", "012-345-6789", "123 Sample St."))
 """
 Person(
-    name=
-        "Jane Doe",
-    birthday=
-        "2001-01-01",
-    phone_number=
-        "012-345-6789",
-    address=
-        "123 Sample St.",
+    name        = "Jane Doe",
+    birthday    = "2001-01-01",
+    phone_number    = "012-345-6789",
+    address     = "123 Sample St.",
 )
 """
 ```
