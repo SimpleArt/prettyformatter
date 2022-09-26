@@ -18,7 +18,7 @@ dataclasses, named tuples, or Numpy arrays, and some may only support
 some partially. The table below compares these features for the
 previously mentioned formatters.
 
-|  | `prettyformatter` | `json.dumps` | `pprint.pprint` | `IPython` | `yaml.dump` |
+|  | Pretty Formatter | JSON | Pprint | IPython | Yaml |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | Repr | Y | Y<sup>[1]</sup> | Y | Y | N |
 | JSON | Y | Y | N<sup>[2]</sup> | N<sup>[2]</sup> | N |
