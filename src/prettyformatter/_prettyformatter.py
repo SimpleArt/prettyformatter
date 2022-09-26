@@ -545,7 +545,7 @@ def align(indentations: Mapping[int, int]) -> Mapping[int, bool]:
     Estimates reasonable alignments for key-value pairs by grouping
     nearby alignments to the deeper indentation.
     """
-    L = sorted(indentations)
+    L = range(min(indentations), max(indentations) + 1)
     moved = 0
     unmoved = 0
     is_moved = [False] * len(L)
