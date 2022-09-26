@@ -18,14 +18,6 @@ dataclasses, named tuples, or Numpy arrays, and some may only support
 some partially. The table below compares these features for the
 previously mentioned formatters.
 
-| Formatter | Repr | JSON | H-Compact | V-Compact | Short Output | Align Dict Value | Align List | Dataclasses | Named Tuples | Numpy Arrays |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | 
-| `prettyformatter` | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
-| `json.dumps` | Y<sup>[1]</sup> | Y | Y | N | N | N | Y | N | Y<sup>[2]</sup> | N |
-| `pprint.pprint` | Y | N<sup>[3]</sup> | N | Y | N | N | Y | Y | Y | N |
-| `IPython` | Y | N<sup>[3]</sup> | Y | Y | Y | N | N | Y | Y | Y |
-| `yaml.dump` | N | N | Y | N | N | N | Y | Y<sup>[2]</sup> | Y<sup>[2]</sup> | N |
-
 |  | `prettyformatter` | `json.dumps` | `pprint.pprint` | `IPython` | `yaml.dump` |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | Repr | Y | Y<sup>[1]</sup> | Y | Y | N |
