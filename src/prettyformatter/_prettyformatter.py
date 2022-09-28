@@ -13,23 +13,19 @@ from collections import UserList, defaultdict, deque
 from itertools import islice
 from math import isinf, isnan
 from types import FunctionType, MethodType
-from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional
-from typing import Sequence, Tuple, Type, TypeVar, Union
+from typing import AbstractSet, Any, Callable, Dict, Iterable, List
+from typing import Mapping, Optional, Sequence, Tuple, Type, TypeVar, Union
 
 if sys.version_info >= (3, 7):
     from dataclasses import fields, is_dataclass
 
 T = TypeVar("T")
 Formatter = Callable[[T, str, int, int, bool], str]
+Nested = Union[str, type(Ellipsis), AbstractSet[T], Dict[Any, T], List[T], Tuple[T, ...]]
+Specifier = Nested[Nested[Nested[Nested[Any]]]]
 Specifiers = Tuple[
-    Optional[str],
-    Optional[str],
-    Optional[str],
-    Optional[str],
-    Optional[str],
-    Optional[str],
-    Optional[str],
-    Optional[str],
+    str, str, str, str,
+    str, str, str, str,
 ]
 
 FSTRING_FORMATTER = re.compile(
@@ -51,7 +47,7 @@ def parse_fstring(
     cache: Dict[str, Optional[Specifiers]] = OrderedDict(),
 ) -> Optional[Specifiers]:
     if specifier == "":
-        return (None,) * 8
+        return ("",) * 8
     elif specifier not in cache:
         if len(cache) > 4:
             cache.popitem(last=False)  # type: ignore
@@ -68,7 +64,7 @@ def matches_repr(subcls: Type[Any], *cls: Type[Any]) -> bool:
 
 def pprint(
     *args: Any,
-    specifier: str = "",
+    specifier: Specifier = "",
     depth: int = 0,
     indent: int = 4,
     shorten: bool = True,
@@ -148,8 +144,6 @@ def pprint(
             ^^^^
           depth = 4
     """
-    if type(specifier) is not str:
-        raise TypeError("pprint specifier expected a string, got " + repr(specifier))
     try:
         depth = operator.index(depth)
     except TypeError:
@@ -188,7 +182,7 @@ def pprint(
 
 def pformat(
     obj: Any,
-    specifier: str = "",
+    specifier: Specifier = "",
     *,
     depth: int = 0,
     indent: int = 4,
@@ -270,8 +264,6 @@ def pformat(
             ^^^^
           depth = 4
     """
-    if type(specifier) is not str:
-        raise TypeError("pformat specifier expected a string, got " + repr(specifier))
     try:
         depth = operator.index(depth)
     except TypeError:
@@ -292,6 +284,8 @@ def pformat(
         raise ValueError("pformat expected depth >= 0")
     if indent <= 0:
         raise ValueError("pformat expected indent > 0")
+    if specifier is ...:
+        return "..."
     shorten &= not json
     if obj is ...:
         return "Ellipsis"
@@ -306,12 +300,22 @@ def pformat(
     elif not json:
         pass
     elif obj is None:
+        if isinstance(specifier, str):
+            specifiers = parse_fstring(specifier)
+            if specifiers is not None:
+                _, align, _, _, width, _, _, _ = specifiers
+                return format("null", align + width)
         return "null"
     elif type(obj) is bool:
+        if isinstance(specifier, str):
+            specifiers = parse_fstring(specifier)
+            if specifiers is not None:
+                _, align, _, _, width, _, _, _ = specifiers
+                return f"{obj:{align}{width}}".lower()
         return str(obj).lower()
     elif hasattr(type(obj), "__index__"):
         obj = operator.index(obj)
-        if specifier == "":
+        if specifier == "" or not isinstance(specifier, str):
             return repr(obj)
         specifiers = parse_fstring(specifier)
         if specifiers is None:
@@ -341,7 +345,7 @@ def pformat(
             result = "NaN"
         else:
             result = repr(obj)
-        if specifier == "":
+        if specifier == "" or not isinstance(specifier, str):
             return result
         specifiers = parse_fstring(specifier)
         if specifiers is None:
@@ -377,7 +381,7 @@ def pformat(
             **with_indent,
         )
     elif issubclass(cls, Mapping):
-        return pformat_dict(obj, **with_indent,)
+        return pformat_dict(obj, **with_indent)
     elif issubclass(cls, Sequence):
         return "[" + pformat_collection(obj, **with_indent) + "]"
     elif issubclass(cls, Iterable):
@@ -385,7 +389,10 @@ def pformat(
     if hasattr(cls, "__pformat__"):
         return cls.__pformat__(obj, specifier, depth, indent, shorten, json)
     elif matches_repr(cls, str):
-        return repr(obj)
+        try:
+            return json.dumps(obj)
+        except:
+            return repr(obj)
     elif matches_repr(cls, ChainMap):
         return (
             cls.__name__
@@ -457,6 +464,15 @@ def pformat(
             )
         )
     elif not matches_repr(cls, UserList, frozenset, list, set, tuple):
+        if cls in FORMATTERS:
+            return formatter(
+                obj,
+                specifier,
+                depth,
+                indent,
+                shorten,
+                json,
+            )
         for c, formatter in reversed(FORMATTERS):
             if matches_repr(cls, c):
                 return formatter(
@@ -471,6 +487,8 @@ def pformat(
             return obj.__qualname__
         elif cls is MethodType:
             return pformat(obj.__self__, specifier) + "." + str(obj.__name__)
+        if not isinstance(specifier, str):
+            return repr(obj)
         try:
             return format(obj, specifier)
         except:
@@ -590,16 +608,28 @@ def align(indentations: Mapping[int, int]) -> Mapping[int, bool]:
             is_moved[1] = False
     return dict(zip(L, is_moved))
 
+def dict_specifier(
+    specifier: Dict[Any, Specifier],
+    key: Any,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    kwargs["specifier"] = specifier[key] if key in specifier else specifier
+    return kwargs
+
 @register(UserDict, dict)
 def pformat_dict(
     obj: Mapping[Any, Any],
-    specifier: str,
+    specifier: Specifier,
     depth: int,
     indent: int,
     shorten: bool,
     json: bool,
 ) -> str:
     """Formats a mapping as a dict."""
+    if isinstance(specifier, set) and len(specifier) == 1:
+        for spec in specifier:
+            if spec is ...:
+                return "{...}"
     depth_plus = depth + indent
     no_indent = dict(specifier=specifier, depth=0, indent=indent, shorten=shorten, json=json)
     plus_indent = dict(specifier=specifier, depth=depth_plus, indent=indent, shorten=shorten, json=json)
@@ -609,10 +639,16 @@ def pformat_dict(
             pformat(key, **no_indent)
             for key in obj
         ]
-        values = [
-            pformat(value, **no_indent)
-            for value in obj.values()
-        ]
+        if isinstance(specifier, dict):
+            values = [
+                pformat(value, **dict_specifier(key=key, **no_indent))
+                for key, value in obj.items()
+            ]
+        else:
+            values = [
+                pformat(value, **no_indent)
+                for key, value in obj.items()
+            ]
         s = ", ".join([k + ": " + v for k, v in zip(keys, values)])
         if len(s) < 50 and "\n" not in s:
             return "{" + s + "}"
@@ -655,31 +691,59 @@ def pformat_dict(
                 shorten = False
         del value_types
     if len(obj) < 10 or not shorten:
-        content = [
-            (
-                pformat(key, **plus_indent),
-                pformat(value, **plus_plus_indent)
-            )
-            for key, value in obj.items()
-        ]
+        if isinstance(specifier, dict):
+            content = [
+                (
+                    pformat(key, **plus_indent),
+                    pformat(value, **dict_specifier(key=key, **plus_plus_indent)),
+                )
+                for key, value in obj.items()
+            ]
+        else:
+            content = [
+                (
+                    pformat(key, **plus_indent),
+                    pformat(value, **plus_plus_indent),
+                )
+                for key, value in obj.items()
+            ]
     else:
-        content = [
-            *[
-                (
-                    pformat(key, **plus_indent),
-                    pformat(value, **plus_plus_indent),
-                )
-                for key, value in islice(obj.items(), 5)
-            ],
-            ...,
-            *[
-                (
-                    pformat(key, **plus_indent),
-                    pformat(value, **plus_plus_indent),
-                )
-                for key, value in islice(obj.items(), len(obj) - 3, None)
-            ],
-        ]
+        if isinstance(specifier, dict):
+            content = [
+                *[
+                    (
+                        pformat(key, **plus_indent),
+                        pformat(value, **dict_specifier(key=key, **plus_plus_indent)),
+                    )
+                    for key, value in islice(obj.items(), 5)
+                ],
+                ...,
+                *[
+                    (
+                        pformat(key, **plus_indent),
+                        pformat(value, **plus_plus_indent),
+                    )
+                    for key, value in islice(obj.items(), len(obj) - 3, None)
+                ],
+            ]
+        else:
+            content = [
+                *[
+                    (
+                        pformat(key, **plus_indent),
+                        pformat(value, **dict_specifier(key=key, **plus_plus_indent)),
+                    )
+                    for key, value in islice(obj.items(), 5)
+                ],
+                ...,
+                *[
+                    (
+                        pformat(key, **plus_indent),
+                        pformat(value, **plus_plus_indent),
+                    )
+                    for key, value in islice(obj.items(), len(obj) - 3, None)
+                ],
+            ]
     s = ", ".join(["..." if c is ... else (c[0] + ": " + c[1]) for c in content])
     if len(s) < 100 and "\n" not in s:
         return "{" + s + "}"
@@ -725,22 +789,48 @@ def pformat_dict(
 
 def pformat_collection(
     obj: Iterable[Any],
-    specifier: str,
+    specifier: Specifier,
     depth: int,
     indent: int,
     shorten: bool,
     json: bool,
 ) -> str:
     """Formats as an iterable as a list without the enclosing brackets."""
+    if (
+        isinstance(specifier, list)
+        and isinstance(obj, Sequence)
+        and len(specifier) == 1
+        and specifier[0] is ...
+    ):
+        return "..."
+    elif (
+        isinstance(specifier, set)
+        and isinstance(obj, AbstractSet)
+        and len(specifier) == 1
+    ):
+        for spec in specifier:
+            if spec is ...:
+                return "..."
     depth_plus = depth + indent
     no_indent = dict(specifier=specifier, depth=0, indent=indent, shorten=shorten, json=json)
     plus_indent = dict(specifier=specifier, depth=depth_plus, indent=indent, shorten=shorten, json=json)
+    if isinstance(specifier, list) and isinstance(obj, Sequence) and len(specifier) == 1:
+        no_indent["specifier"] = plus_indent["specifier"] = specifier[0]
+    elif isinstance(specifier, set) and isinstance(obj, AbstractSet) and len(specifier) == 1:
+        for spec in specifier:
+            no_indent["specifier"] = plus_indent["specifier"] = spec
     cls = type(obj)
     if len(obj) < 10:
-        content = [
-            pformat(x, **no_indent)
-            for x in obj
-        ]
+        if isinstance(specifier, tuple) and isinstance(obj, tuple) and len(specifier) == len(obj):
+            content = [
+                pformat(x, **{**no_indent, "specifier": spec})
+                for x, spec in zip(obj, specifier)
+            ]
+        else:
+            content = [
+                pformat(x, **no_indent)
+                for x in obj
+            ]
         s = ", ".join(content)
         if len(s) < 25 and "\n" not in s or len(s) < 50:
             return s
@@ -755,6 +845,7 @@ def pformat_collection(
         )
         if max(map(len, s.splitlines())) < 50 and len(s) < 120:
             return s
+    shorten &= not isinstance(obj, tuple)
     if shorten:
         types = {*map(type, obj)}
         if len(types) > 1:
@@ -774,12 +865,7 @@ def pformat_collection(
             if len({frozenset(map(type, x)) for x in obj}) > 1:
                 shorten = False
         del types
-    if len(obj) < 10 or not shorten:
-        content = [
-            pformat(x, **plus_indent)
-            for x in obj
-        ]
-    else:
+    if len(obj) >= 10 and shorten:
         content = [
             *[
                 pformat(x, **plus_indent)
@@ -790,6 +876,16 @@ def pformat_collection(
                 pformat(x, **plus_indent)
                 for x in islice(obj, len(obj) - 3, None)
             ],
+        ]
+    elif isinstance(specifier, tuple) and isinstance(obj, tuple) and len(specifier) == len(obj):
+        content = [
+            pformat(x, **{**plus_indent, "specifier": spec})
+            for x, spec in zip(obj, specifier)
+        ]
+    else:
+        content = [
+            pformat(x, **plus_indent)
+            for x in obj
         ]
     s = ", ".join(content)
     if "\n" not in s and len(s) < 120:
@@ -803,7 +899,7 @@ def pformat_collection(
 def pformat_class(
     args: Tuple[Any, ...],
     kwargs: Dict[str, Any],
-    specifier: str,
+    specifier: Specifier,
     depth: int,
     indent: int,
     shorten: bool,
@@ -819,109 +915,147 @@ def pformat_class(
     plus_plus_indent = dict(specifier=specifier, depth=depth_plus + indent, indent=indent, shorten=shorten, json=json)
     with_indent = dict(specifier=specifier, depth=depth, indent=indent, shorten=shorten, json=json)
     if json:
+        if not isinstance(specifier, dict) or specifier.keys() != {"args", "kwargs"}:
+            with_indent["specifier"] = {"args": specifier, "kwargs": specifier}
         return pformat_dict({"args": args, "kwargs": kwargs}, **with_indent)
-    if len(args) + len(kwargs) > 3:
-        content = [pformat(value, **no_indent) for value in kwargs.values()]
-        alignment = align(Counter(
-            len(name) // indent
-            for name, value in zip(kwargs, content)
-            if len(name) + len(value) < 90
-            if "\n" not in kwargs
-        ))
-        return (
-            ("(\n" + " " * depth_plus)
-            + (",\n" + " " * depth_plus).join([
+    if isinstance(specifier, dict) and specifier.keys() == {"args", "kwargs"}:
+        args_specifier = specifier["args"]
+        kwargs_specifier = specifier["kwargs"]
+    else:
+        args_specifier = kwargs_specifier = specifier
+    if len(args) + 2 * len(kwargs) < 8:
+        s = "("
+        no_indent["specifier"] = args_specifier
+        if isinstance(args_specifier, tuple) and len(args_specifier) == len(args):
+            s += ", ".join([
+                pformat(x, **{**no_indent, "specifier": spec})
+                for x, c in zip(args, args_specifier)
+            ])
+        else:
+            s += ", ".join([
+                pformat(x, **no_indent)
+                for x in args
+            ])
+        if len(args) > 0 < len(kwargs):
+            s += ", "
+        no_indent["specifier"] = kwargs_specifier
+        if isinstance(kwargs_specifier, dict):
+            s += ", ".join([
+                name
+                + "="
+                + pformat(value, **dict_specifier(key=name, **no_indent))
+                for name, value in kwargs.items()
+            ])
+        else:
+            s += ", ".join([
+                name
+                + "="
+                + pformat(value, **no_indent)
+                for name, value in kwargs.items()
+            ])
+        s += ")"
+        no_indent["specifier"] = specifier
+        if len(s) < 100 and "\n" not in s:
+            return s
+        del s
+        kwarg_lengths = {*map(len, kwargs)}
+    if (
+        len(args) + 2 * len(kwargs) >= 8
+        or len(kwarg_lengths) > 1
+        or any(L >= indent for L in kwarg_lengths)
+    ):
+        no_indent["specifier"] = kwargs_specifier
+        plus_indent["specifier"] = args_specifier
+        plus_plus_indent["specifier"] = kwargs_specifier
+        s = "(\n" + " " * depth_plus
+        if isinstance(args_specifier, tuple) and len(args_specifier) == len(args):
+            s += (",\n" + " " * depth_plus).join([
+                pformat(x, **plus_indent)
+                for x, spec in zip(args, args_specifier)
+            ])
+        else:
+            s += (",\n" + " " * depth_plus).join([
                 pformat(x, **plus_indent)
                 for x in args
             ])
-            + (",\n" + " " * depth_plus) * (len(args) & len(kwargs) > 0)
-            + (",\n" + " " * depth_plus).join([
-                (
+        if len(args) > 0 < len(kwargs):
+            s += ",\n" + " " * depth_plus
+        if isinstance(kwargs_specifier, dict):
+            content = [
+                pformat(value, **dict_specifier(key=name, **no_indent))
+                for name, value in kwargs.items()
+            ]
+        else:
+            content = [
+                pformat(value, **no_indent)
+                for value in kwargs.values()
+            ]
+        newlines = {i for i, c in enumerate(content) if "\n" in c}
+        alignment = align(Counter(
+            len(name) // indent
+            for i, (name, c) in enumerate(zip(kwargs, content))
+            if len(name) + len(c) < 90
+            if i in newlines
+        ))
+        for i, (name, c) in enumerate(zip(kwargs, content)):
+            if i in newlines:
+                content[i] = ""
+                continue
+            content[i] = (
+                name
+                + " " * (
+                    1 + (~len(name) % indent) + indent * alignment[len(name) // indent]
+                )
+                + ("= " + c)
+            )
+        if isinstance(kwargs_specifier, dict):
+            for i, (name, value) in enumerate(kwargs.items()):
+                if i not in newlines:
+                    continue
+                content[i] = (
+                    name
+                    + "=\n"
+                    + " " * (depth_plus + indent)
+                    + pformat(value, **dict_specifier(key=name, **plus_plus_indent))
+                )
+        else:
+            for i, (name, value) in enumerate(kwargs.items()):
+                if i not in newlines:
+                    continue
+                content[i] = (
                     name
                     + "=\n"
                     + " " * (depth_plus + indent)
                     + pformat(value, **plus_plus_indent)
                 )
-                    if
-                "\n" in c
-                    else
-                (
-                    name
-                    + " " * (1 + indent * alignment[len(name) // indent])
-                    + " " * (~len(name) % indent)
-                    + "= "
-                    + c
-                )
-                for (name, value), c in zip(kwargs.items(), content)
-            ])
-            + (",\n" + " " * depth + ")")
-        )
-    s = (
-        "("
-        + ", ".join([
-            pformat(x, **no_indent)
-            for x in args
+        return s + (",\n" + " " * depth_plus).join(content) + (",\n" + " " * depth + ")")
+    s = "(\n" + " " * depth_plus
+    plus_indent["specifier"] = args_specifier
+    if isinstance(args_specifier, tuple) and len(args_specifier) == len(args):
+        s += (",\n" + " " * depth_plus).join([
+            pformat(x, **{**plus_indent, "specifier": spec})
+            for x, spec in zip(args, args_specifier)
         ])
-        + ", " * (len(args) & len(kwargs) > 0)
-        + ", ".join([
-            name
-            + "="
-            + pformat(value, **no_indent)
-            for name, value in kwargs.items()
-        ])
-        + ")"
-    )
-    if len(s) < 100 and "\n" not in s:
-        return s
-    kwarg_lengths = {len(name) for name in kwargs}
-    if len(kwarg_lengths) > 1 or any(L >= indent for L in kwarg_lengths):
-        content = [pformat(value, **no_indent) for value in kwargs.values()]
-        alignment = align(Counter(
-            len(name) // indent
-            for name, value in zip(kwargs, content)
-            if len(name) + len(value) < 90
-            if "\n" not in kwargs
-        ))
-        return (
-            ("(\n" + " " * depth_plus)
-            + (",\n" + " " * depth_plus).join([
-                pformat(x, **plus_indent)
-                for x in args
-            ])
-            + (",\n" + " " * depth_plus) * (len(args) & len(kwargs) > 0)
-            + (",\n" + " " * depth_plus).join([
-                (
-                    name
-                    + "=\n"
-                    + " " * (depth_plus + indent)
-                    + pformat(value, **plus_plus_indent)
-                )
-                    if
-                "\n" in c
-                    else
-                (
-                    name
-                    + " " * (1 + indent * alignment[len(name) // indent])
-                    + " " * (~len(name) % indent)
-                    + "= "
-                    + c
-                )
-                for (name, value), c in zip(kwargs.items(), content)
-            ])
-            + (",\n" + " " * depth + ")")
-        )
-    return (
-        ("(\n" + " " * depth_plus)
-        + (",\n" + " " * depth_plus).join([
+    else:
+        s += (",\n" + " " * depth_plus).join([
             pformat(x, **plus_indent)
             for x in args
         ])
-        + (",\n" + " " * depth_plus) * (len(args) & len(kwargs) > 0)
-        + (",\n" + " " * depth_plus).join([
+    if len(args) > 0 < len(kwargs):
+        s += ",\n" + " " * depth_plus
+    plus_plus_indent["specifier"] = kwargs_specifier
+    if isinstance(kwargs_specifier, dict):
+        s += (",\n" + " " * depth_plus).join([
+            name
+            + "="
+            + pformat(value, **dict_specifier(key=name, **plus_plus_indent))
+            for name, value in kwargs.items()
+        ])
+    else:
+        s += (",\n" + " " * depth_plus).join([
             name
             + "="
             + pformat(value, **plus_plus_indent)
             for name, value in kwargs.items()
         ])
-        + (",\n" + " " * depth + ")")
-    )
+    return s + (",\n" + " " * depth + ")")
