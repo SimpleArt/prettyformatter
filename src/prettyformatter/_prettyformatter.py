@@ -618,9 +618,9 @@ def pformat_dict(
         key_types = {*map(type, obj)}
         if len(key_types) > 1:
             shorten = False
-        elif any(issubclass(cls, str) for cls in types):
+        elif any(issubclass(cls, str) for cls in key_types):
             pass
-        elif any(issubclass(cls, Mapping) for cls in types):
+        elif any(issubclass(cls, Mapping) for cls in key_types):
             if len({
                 frozenset(
                     (type(key), type(value))
@@ -637,9 +637,9 @@ def pformat_dict(
         value_types = {*map(type, obj.values())}
         if len(value_types) > 1:
             shorten = False
-        elif any(issubclass(cls, str) for cls in types):
+        elif any(issubclass(cls, str) for cls in value_types):
             pass
-        elif any(issubclass(cls, Mapping) for cls in types):
+        elif any(issubclass(cls, Mapping) for cls in value_types):
             if len({
                 frozenset(
                     (type(key), type(value))
