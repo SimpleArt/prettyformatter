@@ -12,6 +12,7 @@ from collections import ChainMap, Counter, OrderedDict, UserDict
 from collections import UserList, defaultdict, deque
 from itertools import islice
 from math import isinf, isnan
+from types import FunctionType, MethodType
 from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional
 from typing import Sequence, Tuple, Type, TypeVar, Union
 
@@ -428,7 +429,8 @@ def pformat(
             **with_indent,
         )
     elif (
-        all(
+        cls is not type
+        and all(
             parent is expected
             for parent, expected in zip(
                 cls.mro(),
@@ -465,7 +467,12 @@ def pformat(
                     shorten,
                     json,
                 )
-        return format(obj, specifier)
+        if cls is type or cls is FunctionType or cls is MethodType:
+            return obj.__qualname__
+        try:
+            return format(obj, specifier)
+        except:
+            return repr(obj)
     s = pformat_collection(obj, **with_indent)
     if matches_repr(cls, frozenset):
         return (
