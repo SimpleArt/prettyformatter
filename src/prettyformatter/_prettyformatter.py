@@ -467,8 +467,10 @@ def pformat(
                     shorten,
                     json,
                 )
-        if cls is type or cls is FunctionType or cls is MethodType:
+        if cls is type or cls is FunctionType:
             return obj.__qualname__
+        elif cls is MethodType:
+            return pformat(obj.__self__, specifier) + "." + str(obj.__name__)
         try:
             return format(obj, specifier)
         except:
