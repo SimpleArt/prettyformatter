@@ -665,7 +665,7 @@ def pformat_dict(
                     for key, value in x.items()
                 )
                 for x in obj
-            }):
+            }) > 1:
                 shorten = False
         elif any(issubclass(cls, Iterable) for cls in key_types):
             if len({frozenset(map(type, key)) for key in obj}) > 1:
@@ -684,7 +684,7 @@ def pformat_dict(
                     for key, value in x.items()
                 )
                 for x in obj.values()
-            }):
+            }) > 1:
                 shorten = False
         elif any(issubclass(cls, Iterable) for cls in value_types):
             if len({frozenset(map(type, value)) for value in obj.values()}) > 1:
@@ -859,7 +859,7 @@ def pformat_collection(
                     for key, value in x.items()
                 )
                 for x in obj
-            }):
+            }) > 1:
                 shorten = False
         elif any(issubclass(cls, Iterable) for cls in types):
             if len({frozenset(map(type, x)) for x in obj}) > 1:
