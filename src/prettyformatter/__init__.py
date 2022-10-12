@@ -193,7 +193,7 @@ Examples
 __version__ = "2.0.1"
 
 from ._pretty_class import PrettyClass
-from ._prettyformatter import pformat, pprint, register
+from ._prettyformatter import Specifier, pformat, pprint, register
 
 try:
     from ._pretty_dataclass import PrettyDataclass
