@@ -30,6 +30,7 @@ else:
     EllipsisType = type(...)
 
 T = TypeVar("T")
+
 Formatter = Callable[[T, str, int, int, bool], str]
 
 Specifier = TypeVar("Specifier", bound=Union[
@@ -110,6 +111,29 @@ def pprint(
             The arguments being printed.
         specifier:
             A format specifier e.g. ".2f".
+
+            If `...` is given, then the result is just "...".
+            If `{specifier}` is given, then elements in sets are
+                formatted using the specifier in the set.
+            If `{key: specifier}` is given, then dictionaries which match
+                the keys will distribute the specifier to the values.
+                This also includes key-value based classes, such as
+                dataclasses.
+            If `[specifier]` is given, then elements in lists are
+                formatted using the specifier in the list.
+            If `(s1, s2, ...)` is given, then tuples which match the size
+                of the specifier will distribute the specifier to each
+                index. This also includes arg based pretty classes.
+
+            Specifiers can additionally be nested arbitrarily, such as
+                pprint(
+                    data,
+                    specifier={"times": [...], "profits": [".2f"]},
+                )
+            which will search for dictionaries that have `"times"` and
+            `"profits"` as keys, replacing any lists in the times with
+            `"[...]"` and formatting elements in any lists inside the
+            profits with `".2f"` to display to 2 decimals.
         depth:
             The depth of the objects.
             Their first lines are not indented.
@@ -234,6 +258,29 @@ def pformat(
             The object being formatted.
         specifier:
             A format specifier e.g. ".2f".
+
+            If `...` is given, then the result is just "...".
+            If `{specifier}` is given, then elements in sets are
+                formatted using the specifier in the set.
+            If `{key: specifier}` is given, then dictionaries which match
+                the keys will distribute the specifier to the values.
+                This also includes key-value based classes, such as
+                dataclasses.
+            If `[specifier]` is given, then elements in lists are
+                formatted using the specifier in the list.
+            If `(s1, s2, ...)` is given, then tuples which match the size
+                of the specifier will distribute the specifier to each
+                index. This also includes arg based pretty classes.
+
+            Specifiers can additionally be nested arbitrarily, such as
+                pprint(
+                    data,
+                    specifier={"times": [...], "profits": [".2f"]},
+                )
+            which will search for dictionaries that have `"times"` and
+            `"profits"` as keys, replacing any lists in the times with
+            `"[...]"` and formatting elements in any lists inside the
+            profits with `".2f"` to display to 2 decimals.
         depth:
             The depth of the objects.
             Their first lines are not indented.
