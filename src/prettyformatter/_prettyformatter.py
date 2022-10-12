@@ -8,8 +8,10 @@ import json as _json
 import operator
 import re
 import sys
+import typing
 from collections import ChainMap, Counter, OrderedDict, UserDict
 from collections import UserList, defaultdict, deque
+from enum import Enum
 from itertools import islice
 from math import isinf, isnan
 from types import FunctionType, MethodType
@@ -18,6 +20,14 @@ from typing import Mapping, Optional, Sequence, Tuple, Type, TypeVar, Union
 
 if sys.version_info >= (3, 7):
     from dataclasses import fields, is_dataclass
+
+if sys.version_info >= (3, 10):
+    from types import EllipsisType
+elif typing.TYPE_CHECKING:
+    class EllipsisType(Enum):
+        Ellipsis = "..."
+else:
+    EllipsisType = type(...)
 
 T = TypeVar("T")
 Formatter = Callable[[T, str, int, int, bool], str]
