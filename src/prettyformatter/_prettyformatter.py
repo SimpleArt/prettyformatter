@@ -31,8 +31,16 @@ else:
 
 T = TypeVar("T")
 Formatter = Callable[[T, str, int, int, bool], str]
-Nested = Union[str, type(Ellipsis), AbstractSet[T], Dict[Any, T], List[T], Tuple[T, ...]]
-Specifier = Nested[Nested[Nested[Nested[Any]]]]
+
+Specifier = TypeVar("Specifier", bound=Union[
+    str,
+    EllipsisType,
+    AbstractSet[Any],
+    Dict[Any, Any],
+    List[Any],
+    Tuple[Any, ...],
+])
+
 Specifiers = Tuple[
     str, str, str, str,
     str, str, str, str,
@@ -54,7 +62,7 @@ FORMATTERS = []
 
 def parse_fstring(
     specifier: str,
-    cache: Dict[str, Optional[Specifiers]] = OrderedDict(),
+    cache: Dict[str, Specifiers] = OrderedDict(),
 ) -> Optional[Specifiers]:
     if specifier == "":
         return ("",) * 8
@@ -74,7 +82,14 @@ def matches_repr(subcls: Type[Any], *cls: Type[Any]) -> bool:
 
 def pprint(
     *args: Any,
-    specifier: Specifier = "",
+    specifier: Union[
+        str,
+        EllipsisType,
+        AbstractSet[Specifier],
+        Dict[Any, Specifier],
+        List[Specifier],
+        Tuple[Specifier, ...],
+    ] = "",
     depth: int = 0,
     indent: int = 4,
     shorten: bool = True,
@@ -192,7 +207,14 @@ def pprint(
 
 def pformat(
     obj: Any,
-    specifier: Specifier = "",
+    specifier: Union[
+        str,
+        EllipsisType,
+        AbstractSet[Specifier],
+        Dict[Any, Specifier],
+        List[Specifier],
+        Tuple[Specifier, ...],
+    ] = "",
     *,
     depth: int = 0,
     indent: int = 4,
@@ -619,7 +641,17 @@ def align(indentations: Mapping[int, int]) -> Mapping[int, bool]:
     return dict(zip(L, is_moved))
 
 def dict_specifier(
-    specifier: Dict[Any, Specifier],
+    specifier: Dict[
+        Any,
+        Union[
+            str,
+            EllipsisType,
+            AbstractSet[Specifier],
+            Dict[Any, Specifier],
+            List[Specifier],
+            Tuple[Specifier, ...],
+        ],
+    ],
     key: Any,
     **kwargs: Any,
 ) -> Dict[str, Any]:
@@ -629,7 +661,14 @@ def dict_specifier(
 @register(UserDict, dict)
 def pformat_dict(
     obj: Mapping[Any, Any],
-    specifier: Specifier,
+    specifier: Union[
+        str,
+        EllipsisType,
+        AbstractSet[Specifier],
+        Dict[Any, Specifier],
+        List[Specifier],
+        Tuple[Specifier, ...],
+    ],
     depth: int,
     indent: int,
     shorten: bool,
@@ -799,7 +838,14 @@ def pformat_dict(
 
 def pformat_collection(
     obj: Iterable[Any],
-    specifier: Specifier,
+    specifier: Union[
+        str,
+        EllipsisType,
+        AbstractSet[Specifier],
+        Dict[Any, Specifier],
+        List[Specifier],
+        Tuple[Specifier, ...],
+    ],
     depth: int,
     indent: int,
     shorten: bool,
@@ -909,7 +955,14 @@ def pformat_collection(
 def pformat_class(
     args: Tuple[Any, ...],
     kwargs: Dict[str, Any],
-    specifier: Specifier,
+    specifier: Union[
+        str,
+        EllipsisType,
+        AbstractSet[Specifier],
+        Dict[Any, Specifier],
+        List[Specifier],
+        Tuple[Specifier, ...],
+    ],
     depth: int,
     indent: int,
     shorten: bool,
