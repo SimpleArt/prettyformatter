@@ -519,7 +519,7 @@ def pformat(
             return obj.__qualname__
         elif cls is MethodType:
             return pformat(obj.__self__, specifier) + "." + str(obj.__name__)
-        if not isinstance(specifier, str):
+        if not isinstance(specifier, str) or specifier == "":
             return repr(obj)
         try:
             return format(obj, specifier)
