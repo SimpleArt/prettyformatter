@@ -190,10 +190,10 @@ Examples
             "C" : [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
         }
 """
-__version__ = "2.0.1"
+__version__ = "2.0.2"
 
 from ._pretty_class import PrettyClass
-from ._prettyformatter import pformat, pprint, register
+from ._prettyformatter import Specifier, pformat, pprint, register
 
 try:
     from ._pretty_dataclass import PrettyDataclass

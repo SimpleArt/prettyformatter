@@ -2,9 +2,9 @@
 Implements:
     PrettyClass
 """
-from typing import Any, Dict, Tuple, TypeVar
+from typing import AbstractSet, Any, Dict, List, Tuple, TypeVar
 
-from ._prettyformatter import Specifier, pformat, pformat_class
+from ._prettyformatter import EllipsisType, Specifier, pformat, pformat_class
 
 Self = TypeVar("Self", bound="PrettyClass")
 
@@ -75,7 +75,21 @@ class PrettyClass:
         """
         raise NotImplementedError
 
-    def __pformat__(self: Self, specifier: Specifier, depth: int, indent: int, shorten: bool, json: bool) -> str:
+    def __pformat__(
+        self: Self,
+        specifier: Union[
+            str,
+            EllipsisType,
+            AbstractSet[Specifier],
+            Dict[Any, Specifier],
+            List[Specifier],
+            Tuple[Specifier, ...],
+        ],
+        depth: int,
+        indent: int,
+        shorten: bool,
+        json: bool,
+    ) -> str:
         """
         Default implementation uses __pargs__ and __pkwargs__.
         """

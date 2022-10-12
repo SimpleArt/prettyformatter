@@ -8,8 +8,10 @@ import json as _json
 import operator
 import re
 import sys
+import typing
 from collections import ChainMap, Counter, OrderedDict, UserDict
 from collections import UserList, defaultdict, deque
+from enum import Enum
 from itertools import islice
 from math import isinf, isnan
 from types import FunctionType, MethodType
@@ -19,10 +21,27 @@ from typing import Mapping, Optional, Sequence, Tuple, Type, TypeVar, Union
 if sys.version_info >= (3, 7):
     from dataclasses import fields, is_dataclass
 
+if sys.version_info >= (3, 10):
+    from types import EllipsisType
+elif typing.TYPE_CHECKING:
+    class EllipsisType(Enum):
+        Ellipsis = "..."
+else:
+    EllipsisType = type(...)
+
 T = TypeVar("T")
+
 Formatter = Callable[[T, str, int, int, bool], str]
-Nested = Union[str, type(Ellipsis), AbstractSet[T], Dict[Any, T], List[T], Tuple[T, ...]]
-Specifier = Nested[Nested[Nested[Nested[Any]]]]
+
+Specifier = TypeVar("Specifier", bound=Union[
+    str,
+    EllipsisType,
+    AbstractSet[Any],
+    Dict[Any, Any],
+    List[Any],
+    Tuple[Any, ...],
+])
+
 Specifiers = Tuple[
     str, str, str, str,
     str, str, str, str,
@@ -44,7 +63,7 @@ FORMATTERS = []
 
 def parse_fstring(
     specifier: str,
-    cache: Dict[str, Optional[Specifiers]] = OrderedDict(),
+    cache: Dict[str, Specifiers] = OrderedDict(),
 ) -> Optional[Specifiers]:
     if specifier == "":
         return ("",) * 8
@@ -64,7 +83,14 @@ def matches_repr(subcls: Type[Any], *cls: Type[Any]) -> bool:
 
 def pprint(
     *args: Any,
-    specifier: Specifier = "",
+    specifier: Union[
+        str,
+        EllipsisType,
+        AbstractSet[Specifier],
+        Dict[Any, Specifier],
+        List[Specifier],
+        Tuple[Specifier, ...],
+    ] = "",
     depth: int = 0,
     indent: int = 4,
     shorten: bool = True,
@@ -85,6 +111,29 @@ def pprint(
             The arguments being printed.
         specifier:
             A format specifier e.g. ".2f".
+
+            If `...` is given, then the result is just "...".
+            If `{specifier}` is given, then elements in sets are
+                formatted using the specifier in the set.
+            If `{key: specifier}` is given, then dictionaries which match
+                the keys will distribute the specifier to the values.
+                This also includes key-value based classes, such as
+                dataclasses.
+            If `[specifier]` is given, then elements in lists are
+                formatted using the specifier in the list.
+            If `(s1, s2, ...)` is given, then tuples which match the size
+                of the specifier will distribute the specifier to each
+                index. This also includes arg based pretty classes.
+
+            Specifiers can additionally be nested arbitrarily, such as
+                pprint(
+                    data,
+                    specifier={"times": [...], "profits": [".2f"]},
+                )
+            which will search for dictionaries that have `"times"` and
+            `"profits"` as keys, replacing any lists in the times with
+            `"[...]"` and formatting elements in any lists inside the
+            profits with `".2f"` to display to 2 decimals.
         depth:
             The depth of the objects.
             Their first lines are not indented.
@@ -182,7 +231,14 @@ def pprint(
 
 def pformat(
     obj: Any,
-    specifier: Specifier = "",
+    specifier: Union[
+        str,
+        EllipsisType,
+        AbstractSet[Specifier],
+        Dict[Any, Specifier],
+        List[Specifier],
+        Tuple[Specifier, ...],
+    ] = "",
     *,
     depth: int = 0,
     indent: int = 4,
@@ -202,6 +258,29 @@ def pformat(
             The object being formatted.
         specifier:
             A format specifier e.g. ".2f".
+
+            If `...` is given, then the result is just "...".
+            If `{specifier}` is given, then elements in sets are
+                formatted using the specifier in the set.
+            If `{key: specifier}` is given, then dictionaries which match
+                the keys will distribute the specifier to the values.
+                This also includes key-value based classes, such as
+                dataclasses.
+            If `[specifier]` is given, then elements in lists are
+                formatted using the specifier in the list.
+            If `(s1, s2, ...)` is given, then tuples which match the size
+                of the specifier will distribute the specifier to each
+                index. This also includes arg based pretty classes.
+
+            Specifiers can additionally be nested arbitrarily, such as
+                pprint(
+                    data,
+                    specifier={"times": [...], "profits": [".2f"]},
+                )
+            which will search for dictionaries that have `"times"` and
+            `"profits"` as keys, replacing any lists in the times with
+            `"[...]"` and formatting elements in any lists inside the
+            profits with `".2f"` to display to 2 decimals.
         depth:
             The depth of the objects.
             Their first lines are not indented.
@@ -465,7 +544,7 @@ def pformat(
         )
     elif not matches_repr(cls, UserList, frozenset, list, set, tuple):
         if cls in FORMATTERS:
-            return formatter(
+            return FORMATTERS[cls](
                 obj,
                 specifier,
                 depth,
@@ -487,7 +566,7 @@ def pformat(
             return obj.__qualname__
         elif cls is MethodType:
             return pformat(obj.__self__, specifier) + "." + str(obj.__name__)
-        if not isinstance(specifier, str):
+        if not isinstance(specifier, str) or specifier == "":
             return repr(obj)
         try:
             return format(obj, specifier)
@@ -609,7 +688,17 @@ def align(indentations: Mapping[int, int]) -> Mapping[int, bool]:
     return dict(zip(L, is_moved))
 
 def dict_specifier(
-    specifier: Dict[Any, Specifier],
+    specifier: Dict[
+        Any,
+        Union[
+            str,
+            EllipsisType,
+            AbstractSet[Specifier],
+            Dict[Any, Specifier],
+            List[Specifier],
+            Tuple[Specifier, ...],
+        ],
+    ],
     key: Any,
     **kwargs: Any,
 ) -> Dict[str, Any]:
@@ -619,7 +708,14 @@ def dict_specifier(
 @register(UserDict, dict)
 def pformat_dict(
     obj: Mapping[Any, Any],
-    specifier: Specifier,
+    specifier: Union[
+        str,
+        EllipsisType,
+        AbstractSet[Specifier],
+        Dict[Any, Specifier],
+        List[Specifier],
+        Tuple[Specifier, ...],
+    ],
     depth: int,
     indent: int,
     shorten: bool,
@@ -789,7 +885,14 @@ def pformat_dict(
 
 def pformat_collection(
     obj: Iterable[Any],
-    specifier: Specifier,
+    specifier: Union[
+        str,
+        EllipsisType,
+        AbstractSet[Specifier],
+        Dict[Any, Specifier],
+        List[Specifier],
+        Tuple[Specifier, ...],
+    ],
     depth: int,
     indent: int,
     shorten: bool,
@@ -899,7 +1002,14 @@ def pformat_collection(
 def pformat_class(
     args: Tuple[Any, ...],
     kwargs: Dict[str, Any],
-    specifier: Specifier,
+    specifier: Union[
+        str,
+        EllipsisType,
+        AbstractSet[Specifier],
+        Dict[Any, Specifier],
+        List[Specifier],
+        Tuple[Specifier, ...],
+    ],
     depth: int,
     indent: int,
     shorten: bool,
