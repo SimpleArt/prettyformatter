@@ -497,7 +497,7 @@ def pformat(
         )
     elif not matches_repr(cls, UserList, frozenset, list, set, tuple):
         if cls in FORMATTERS:
-            return formatter(
+            return FORMATTERS[cls](
                 obj,
                 specifier,
                 depth,
