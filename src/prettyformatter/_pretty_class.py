@@ -2,7 +2,14 @@
 Implements:
     PrettyClass
 """
-from typing import AbstractSet, Any, Dict, List, Tuple, TypeVar
+import sys
+from typing import Any, TypeVar, Union
+
+if sys.version_info < (3, 9):
+    from typing import AbstractSet, Dict, List, Tuple
+else:
+    from builtins import dict as Dict, list as List, tuple as Tuple
+    from collections.abc import Set as AbstractSet
 
 from ._prettyformatter import EllipsisType, Specifier, pformat, pformat_class
 
