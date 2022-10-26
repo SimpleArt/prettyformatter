@@ -9,14 +9,12 @@ import operator
 import re
 import sys
 import typing
-from collections import ChainMap, Counter, OrderedDict, UserDict
-from collections import UserList, defaultdict, deque
+from collections import UserDict, UserList
 from enum import Enum
 from itertools import islice
 from math import isinf, isnan
 from types import FunctionType, MethodType
-from typing import AbstractSet, Any, Callable, Dict, Iterable, List
-from typing import Mapping, Optional, Sequence, Tuple, Type, TypeVar, Union
+from typing import Any, Optional, TypeVar, Union
 
 if sys.version_info >= (3, 7):
     from dataclasses import fields, is_dataclass
@@ -28,6 +26,18 @@ elif typing.TYPE_CHECKING:
         Ellipsis = "..."
 else:
     EllipsisType = type(...)
+
+if sys.version_info < (3, 9):
+    from typing import AbstractSet, Callable, ChainMap, Counter
+    from typing import DefaultDict, Deque, Dict, Iterable, List, Mapping
+    from typing import OrderedDict, Sequence, Tuple, Type
+else:
+    from builtins import dict as Dict, list as List, set as AbstractSet
+    from builtins import tuple as Tuple, type as Type
+    from collections import ChainMap, Counter, OrderedDict
+    from collections import defaultdict as DefaultDict, deque as Deque
+    from collections.abc import Set as AbstractSet, Callable, Iterable
+    from collections.abc import Mapping, Sequence
 
 T = TypeVar("T")
 
@@ -497,12 +507,12 @@ def pformat(
             + pformat_collection(obj.items(), **with_indent)
             + "])"
         )
-    elif matches_repr(cls, defaultdict):
+    elif matches_repr(cls, DefaultDict):
         return cls.__name__ + pformat(
             (obj.default_factory, dict(obj)),
             **with_indent,
         )
-    elif matches_repr(cls, deque):
+    elif matches_repr(cls, Deque):
         if obj.maxlen is None:
             return (
                 cls.__name__

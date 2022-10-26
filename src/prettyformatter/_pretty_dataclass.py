@@ -2,8 +2,14 @@
 Implements:
     PrettyDataclass
 """
+import sys
 from dataclasses import fields, is_dataclass
-from typing import Any, Dict, Type, TypeVar
+from typing import Any, TypeVar
+
+if sys.version_info < (3, 9):
+    from typing import Dict, Type
+else:
+    from builtins import dict as Dict, type as Type
 
 from ._pretty_class import PrettyClass
 from ._prettyformatter import pformat
