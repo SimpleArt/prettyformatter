@@ -2,7 +2,7 @@
 Implements:
     PrettyClass
 """
-from typing import AbstractSet, Any, Dict, List, Tuple, TypeVar
+from typing import AbstractSet, Any, Dict, List, Tuple, TypeVar, Union
 
 from ._prettyformatter import EllipsisType, Specifier, pformat, pformat_class
 
