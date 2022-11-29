@@ -30,7 +30,7 @@ else:
 if sys.version_info < (3, 9):
     from typing import AbstractSet, Callable, ChainMap, Counter
     from typing import DefaultDict, Deque, Dict, Iterable, List, Mapping
-    from typing import OrderedDict, Sequence, Tuple, Type
+    from typing import OrderedDict, Pattern, Sequence, Tuple, Type
 else:
     from builtins import dict as Dict, list as List, set as AbstractSet
     from builtins import tuple as Tuple, type as Type
@@ -38,6 +38,7 @@ else:
     from collections import defaultdict as DefaultDict, deque as Deque
     from collections.abc import Set as AbstractSet, Callable, Iterable
     from collections.abc import Mapping, Sequence
+    from re import Pattern
 
 
 Formatter = Callable[[T, str, int, int, bool], str]
@@ -57,7 +58,7 @@ Specifiers = Tuple[
     str, str, str, str,
 ]
 
-FSTRING_FORMATTER = re.compile(
+FSTRING_FORMATTER: Pattern[str] = re.compile(
     "(?P<fill>.*?)"
     "(?P<align>[<>=^]?)"
     "(?P<sign>[+ -]?)"
