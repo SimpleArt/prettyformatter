@@ -30,7 +30,7 @@ else:
 if sys.version_info < (3, 9):
     from typing import AbstractSet, Callable, ChainMap, Counter
     from typing import DefaultDict, Deque, Dict, Iterable, List, Mapping
-    from typing import OrderedDict, Sequence, Tuple, Type
+    from typing import OrderedDict, Pattern, Sequence, Tuple, Type
 else:
     from builtins import dict as Dict, list as List, set as AbstractSet
     from builtins import tuple as Tuple, type as Type
@@ -38,10 +38,9 @@ else:
     from collections import defaultdict as DefaultDict, deque as Deque
     from collections.abc import Set as AbstractSet, Callable, Iterable
     from collections.abc import Mapping, Sequence
+    from re import Pattern
 
-T = TypeVar("T")
-
-Formatter = Callable[[T, str, int, int, bool], str]
+T = TypeVar("T", bound=Callable[[Any, str, int, int, bool], Any])
 
 Specifier = TypeVar("Specifier", bound=Union[
     str,
@@ -57,7 +56,7 @@ Specifiers = Tuple[
     str, str, str, str,
 ]
 
-FSTRING_FORMATTER = re.compile(
+FSTRING_FORMATTER: Pattern[str] = re.compile(
     "(?P<fill>.*?)"
     "(?P<align>[<>=^]?)"
     "(?P<sign>[+ -]?)"
@@ -597,7 +596,7 @@ def pformat(
     else:
         return "(" + s + ")"
 
-def register(*args: Type[T]) -> Callable[[Formatter[T]], Formatter[T]]:
+def register(*args: Type[Any]) -> Callable[[T], T]:
     """
     Register classes with formatters. Useful for enabling pprint with
     already defined classes.
@@ -649,7 +648,7 @@ def register(*args: Type[T]) -> Callable[[Formatter[T]], Formatter[T]]:
     for cls in args:
         if not isinstance(cls, type):
             raise TypeError("register expected a type for cls, got " + repr(cls))
-    def decorator(func: Formatter[T]) -> Formatter[T]:
+    def decorator(func: T) -> T:
         if not callable(func):
             raise TypeError("@register expected a formatter function, got " + repr(func))
         FORMATTERS.extend((cls, func) for cls in args)
@@ -1032,6 +1031,7 @@ def pformat_class(
     """
     depth_plus = depth + indent
     no_indent = dict(specifier=specifier, depth=0, indent=indent, shorten=shorten, json=json)
+    plus_indent = dict(specifier=specifier, depth=depth_plus, indent=indent, shorten=shorten, json=json)
     plus_plus_indent = dict(specifier=specifier, depth=depth_plus + indent, indent=indent, shorten=shorten, json=json)
     with_indent = dict(specifier=specifier, depth=depth, indent=indent, shorten=shorten, json=json)
     if json:
