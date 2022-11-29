@@ -1032,6 +1032,7 @@ def pformat_class(
     """
     depth_plus = depth + indent
     no_indent = dict(specifier=specifier, depth=0, indent=indent, shorten=shorten, json=json)
+    plus_indent = dict(specifier=specifier, depth=depth_plus, indent=indent, shorten=shorten, json=json)
     plus_plus_indent = dict(specifier=specifier, depth=depth_plus + indent, indent=indent, shorten=shorten, json=json)
     with_indent = dict(specifier=specifier, depth=depth, indent=indent, shorten=shorten, json=json)
     if json:
