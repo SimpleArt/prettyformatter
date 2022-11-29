@@ -42,7 +42,7 @@ else:
 
 
 Formatter = Callable[[T, str, int, int, bool], str]
-T = TypeVar("T", bound=Callable[..., Any])
+T = TypeVar("T", bound=Callable[[Any, str, int, int, bool], Any])
 
 Specifier = TypeVar("Specifier", bound=Union[
     str,
