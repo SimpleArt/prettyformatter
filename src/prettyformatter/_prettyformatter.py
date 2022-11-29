@@ -39,9 +39,9 @@ else:
     from collections.abc import Set as AbstractSet, Callable, Iterable
     from collections.abc import Mapping, Sequence
 
-T = TypeVar("T")
 
 Formatter = Callable[[T, str, int, int, bool], str]
+T = TypeVar("T", bound=Callable[..., Any])
 
 Specifier = TypeVar("Specifier", bound=Union[
     str,
@@ -597,7 +597,7 @@ def pformat(
     else:
         return "(" + s + ")"
 
-def register(*args: Type[T]) -> Callable[[Formatter[T]], Formatter[T]]:
+def register(*args: Type[Any]) -> Callable[[T], T]:
     """
     Register classes with formatters. Useful for enabling pprint with
     already defined classes.
@@ -649,7 +649,7 @@ def register(*args: Type[T]) -> Callable[[Formatter[T]], Formatter[T]]:
     for cls in args:
         if not isinstance(cls, type):
             raise TypeError("register expected a type for cls, got " + repr(cls))
-    def decorator(func: Formatter[T]) -> Formatter[T]:
+    def decorator(func: T) -> T:
         if not callable(func):
             raise TypeError("@register expected a formatter function, got " + repr(func))
         FORMATTERS.extend((cls, func) for cls in args)
