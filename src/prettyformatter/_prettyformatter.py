@@ -40,7 +40,6 @@ else:
     from collections.abc import Mapping, Sequence
     from re import Pattern
 
-
 T = TypeVar("T", bound=Callable[[Any, str, int, int, bool], Any])
 
 Specifier = TypeVar("Specifier", bound=Union[
