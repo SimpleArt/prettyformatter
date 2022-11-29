@@ -1115,7 +1115,7 @@ def pformat_class(
             len(name) // indent
             for i, (name, c) in enumerate(zip(kwargs, content))
             if len(name) + len(c) < 90
-            if i in newlines
+            if i not in newlines
         ))
         for i, (name, c) in enumerate(zip(kwargs, content)):
             if i in newlines:
