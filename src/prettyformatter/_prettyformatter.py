@@ -41,7 +41,6 @@ else:
     from re import Pattern
 
 
-Formatter = Callable[[T, str, int, int, bool], str]
 T = TypeVar("T", bound=Callable[[Any, str, int, int, bool], Any])
 
 Specifier = TypeVar("Specifier", bound=Union[
