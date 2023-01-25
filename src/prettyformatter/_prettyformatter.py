@@ -1121,6 +1121,8 @@ def pformat_class(
             if i in newlines:
                 content[i] = ""
                 continue
+            elif len(name) + len(c) >= 90:
+                continue
             content[i] = (
                 name
                 + " " * (
@@ -1130,7 +1132,7 @@ def pformat_class(
             )
         if isinstance(kwargs_specifier, dict):
             for i, (name, value) in enumerate(kwargs.items()):
-                if i not in newlines:
+                if i not in newlines or len(name) + len(c) >= 90:
                     continue
                 content[i] = (
                     name
@@ -1140,7 +1142,7 @@ def pformat_class(
                 )
         else:
             for i, (name, value) in enumerate(kwargs.items()):
-                if i not in newlines:
+                if i not in newlines or len(name) + len(c) >= 90:
                     continue
                 content[i] = (
                     name
