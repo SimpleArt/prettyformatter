@@ -1122,6 +1122,7 @@ def pformat_class(
                 content[i] = ""
                 continue
             elif len(name) + len(c) >= 90:
+                content[i] = name + "=\n" + " " * depth_plus + c
                 continue
             content[i] = (
                 name
