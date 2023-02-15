@@ -711,7 +711,10 @@ def dict_specifier(
     key: Any,
     **kwargs: Any,
 ) -> Dict[str, Any]:
-    kwargs["specifier"] = specifier[key] if key in specifier else specifier
+    try:
+        kwargs["specifier"] = specifier[key]
+    except (KeyError, TypeError):
+        kwargs["specifier"] = specifier
     return kwargs
 
 @register(UserDict, dict)
