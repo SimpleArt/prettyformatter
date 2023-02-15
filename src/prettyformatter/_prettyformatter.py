@@ -547,7 +547,7 @@ def pformat(
             cls.__name__
             + pformat_class(
                 (),
-                {name: getattr(obj, name) for obj in cls._fields},
+                {name: getattr(obj, name) for name in cls._fields},
                 **with_indent,
             )
         )
