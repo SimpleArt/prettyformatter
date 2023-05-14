@@ -1121,11 +1121,8 @@ def pformat_class(
             if i not in newlines
         ))
         for i, (name, c) in enumerate(zip(kwargs, content)):
-            if i in newlines:
-                content[i] = ""
-                continue
-            elif len(name) + len(c) >= 90:
-                content[i] = name + "=\n" + " " * depth_plus + c
+            if i in newlines or len(name) + len(c) >= 90:
+                content[i] = name + "=\n" + " " * (depth_plus + indent) + c.replace("\n", "\n" + "  " * indent)
                 continue
             content[i] = (
                 name
